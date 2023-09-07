@@ -7,7 +7,8 @@ import os
 from types import SimpleNamespace
 
 
-def extract_useful_info(entity):
+def extract_useful_info(entity, lang="en"):
+    # TODO: convert this to generic language
     qcode = entity['id']
     if 'en' in entity['labels']:
         entity_en_label = entity['labels']['en']['value']
@@ -48,7 +49,7 @@ def extract_useful_info(entity):
             'statements_cnt': statements_cnt, 'triples': triples}
 
 
-def build_wikidata_lookups(args_override=None):
+def build_wikidata_lookups(args_override=None, lang="en"):
     if args_override is None:
         parser = argparse.ArgumentParser(description='Build lookup dictionaries from Wikidata JSON dump.')
         parser.add_argument(
@@ -94,7 +95,7 @@ def build_wikidata_lookups(args_override=None):
     filenames = [
         f'{args.output_dir}/sitelinks_cnt.json.part',
         f'{args.output_dir}/statements_cnt.json.part',
-        f'{args.output_dir}/enwiki.json.part',
+        f'{args.output_dir}/{lang}wiki.json.part',
         f'{args.output_dir}/desc.json.part',
         f'{args.output_dir}/aliases.json.part',
         f'{args.output_dir}/qcode_to_label.json.part',
@@ -113,7 +114,7 @@ def build_wikidata_lookups(args_override=None):
     output_files = {
         'sitelinks_cnt': open(f'{args.output_dir}/sitelinks_cnt.json.part', 'w'),
         'statements_cnt': open(f'{args.output_dir}/statements_cnt.json.part', 'w'),
-        'enwiki': open(f'{args.output_dir}/enwiki.json.part', 'w'),
+        lang+'wiki': open(f'{args.output_dir}/{lang}wiki.json.part', 'w'),
         'desc': open(f'{args.output_dir}/desc.json.part', 'w'),
         'aliases': open(f'{args.output_dir}/aliases.json.part', 'w'),
         'label': open(f'{args.output_dir}/qcode_to_label.json.part', 'w'),
@@ -136,7 +137,7 @@ def build_wikidata_lookups(args_override=None):
                 continue
             line = line.decode('utf-8').rstrip(',\n')
             line = json.loads(line)
-            entity_content = extract_useful_info(line)
+            entity_content = extract_useful_info(line, lang)
             qcode = entity_content['qcode']
             if 'P' in qcode:
                 output_files['properties'].write(json.dumps({'qcode': qcode, 'values': entity_content}) + '\n')
@@ -149,9 +150,9 @@ def build_wikidata_lookups(args_override=None):
                 output_files['statements_cnt'] \
                     .write(json.dumps({'qcode': qcode, 'values': entity_content['statements_cnt']}) + '\n')
 
-            if entity_content['enwiki']:
-                output_files['enwiki'] \
-                    .write(json.dumps({'qcode': qcode, 'values': entity_content['enwiki']}) + '\n')
+            if entity_content[lang+'wiki']:
+                output_files[lang+'wiki'] \
+                    .write(json.dumps({'qcode': qcode, 'values': entity_content[lang+'wiki']}) + '\n')
 
             if entity_content['desc']:
                 output_files['desc'] \

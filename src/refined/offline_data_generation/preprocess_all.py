@@ -47,6 +47,8 @@ OUTPUT_PATH = 'data'
 
 os.makedirs(OUTPUT_PATH, exist_ok=True)
 
+LANG = "de_"
+
 # NOTE that these dump urls may need to be updated if mirrors no longer exist.
 # Also note that dump mirrors have different download speeds.
 # See https://wikimedia.mirror.us.dev/mirrors.html for a list.
@@ -57,11 +59,11 @@ WIKIDATA_DUMP_FILE = 'wikidata.json.bz2'
 
 # Wikipedia configuration
 WIKIPEDIA_REDIRECTS_URL = 'https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-redirect.sql.gz'
-WIKIPEDIA_REDIRECTS_FILE = 'wikipedia_redirects.sql.gz'
+WIKIPEDIA_REDIRECTS_FILE = LANG + 'wikipedia_redirects.sql.gz'
 WIKIPEDIA_PAGE_IDS_URL = 'https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-page.sql.gz'
-WIKIPEDIA_PAGE_IDS_FILE = 'wikipedia_page_ids.sql.gz'
+WIKIPEDIA_PAGE_IDS_FILE = LANG + 'wikipedia_page_ids.sql.gz'
 WIKIPEDIA_ARTICLES_URL = 'https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-pages-articles.xml.bz2'
-WIKIPEDIA_ARTICLES_FILE = 'wikipedia_articles.xml.bz2'
+WIKIPEDIA_ARTICLES_FILE = LANG + 'wikipedia_articles.xml.bz2'
 AIDA_MEANS_URL = 'http://resources.mpi-inf.mpg.de/yago-naga/aida/download/aida_means.tsv.bz2'
 AIDA_MEANS_FILE = 'aida_means.tsv.bz2'
 
@@ -149,14 +151,14 @@ def build_class_labels(resources_dir: str):
 def main():
     parser = ArgumentParser()
     parser.add_argument('--debug', type=str,
-                        default="n",
+                        default="y",
                         help="y or n", )
     parser.add_argument('--additional_entities_file', type=str)
     cli_args = parser.parse_args()
     debug = cli_args.debug.lower() == 'y'
 
     LOG.info('Step 1) Downloading the raw data for Wikidata and Wikipedia.')
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'wikipedia_articles.xml.bz2')):
+    if not os.path.exists(os.path.join(OUTPUT_PATH, LANG + 'wikipedia_articles.xml.bz2')):
         download_dumps()
 
     LOG.info('Step 2) Processing Wikidata dump to build lookups and sets.')
@@ -171,15 +173,15 @@ def main():
             'output_dir': OUTPUT_PATH,
             'overwrite_output_dir': True,
             'test': False}
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'redirects.json')):
+    if not os.path.exists(os.path.join(OUTPUT_PATH, LANG + 'redirects.json')):
         build_redirects(args=args)
 
     LOG.info('Step 4) Extract text from Wikipedia dump.')
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'wikipedia_links_aligned.json')):
+    if not os.path.exists(os.path.join(OUTPUT_PATH, LANG + 'wikipedia_links_aligned.json')):
         preprocess_wikipedia(dump_path=os.path.join(OUTPUT_PATH, WIKIPEDIA_ARTICLES_FILE),
-                             save_path=os.path.join(OUTPUT_PATH, 'preprocessed_wikipedia'))
-        merge_files_and_extract_links(input_dir=os.path.join(OUTPUT_PATH, 'preprocessed_wikipedia'),
-                                      resources_dir=OUTPUT_PATH, output_dir=OUTPUT_PATH)
+                             save_path=os.path.join(OUTPUT_PATH, LANG + 'preprocessed_wikipedia'))
+        merge_files_and_extract_links(input_dir=os.path.join(OUTPUT_PATH, LANG + 'preprocessed_wikipedia'),
+                                      resources_dir=OUTPUT_PATH, output_dir=OUTPUT_PATH, lang=LANG)
 
     LOG.info('Step 5) Building PEM lookup.')
     # additional entity set file
