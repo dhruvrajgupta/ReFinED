@@ -26,9 +26,9 @@ def extract_useful_info(entity, lang='en'):
     else:
         sitelinks = {}
     if f'{lang}wiki' in sitelinks:
-        wiki_title = sitelinks[f'{lang}wiki']['title']
+        langwiki_title = sitelinks[f'{lang}wiki']['title']
     else:
-        wiki_title = None
+        langwiki_title = None
 
     sitelinks_cnt = len(sitelinks.items())
     statements_cnt = 0
