@@ -26,25 +26,47 @@ def main():
     fine_tuning_args = parse_fine_tuning_args()
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     LOG.info("Fine-tuning end-to-end EL" if fine_tuning_args.el else "Fine-tuning ED only.")
-    refined = Refined.from_pretrained(model_name=fine_tuning_args.model_name,
+    # refined = Refined.from_pretrained(model_name=fine_tuning_args.model_name,
+    #                                   entity_set=fine_tuning_args.entity_set,
+    #                                   use_precomputed_descriptions=fine_tuning_args.use_precomputed_descriptions,
+    #                                   device=fine_tuning_args.device)
+
+    refined = Refined.from_pretrained(model_name="wikipedia_model",
                                       entity_set=fine_tuning_args.entity_set,
                                       use_precomputed_descriptions=fine_tuning_args.use_precomputed_descriptions,
-                                      device=fine_tuning_args.device)
+                                      device=fine_tuning_args.device, debug=True)
 
     datasets = get_datasets_obj(preprocessor=refined.preprocessor)
 
-    evaluation_dataset_name_to_docs = {
-        "AIDA": list(datasets.get_aida_docs(
-            split="dev",
+    de_dataset_name_to_docs = {
+        "DE_WIKI": list(datasets.get_generic_lang_docs(
+            filename="/media/dhruv/T7/ELA_/ReFinED/src/refined/offline_data_generation/data/de_wikipedia_links_aligned_10_with_qcodes.jsonl",
             include_gold_label=True,
             filter_not_in_kb=True,
-            include_spans=True,
+            include_spans=True
         ))
     }
+
+    # evaluation_dataset_name_to_docs = {
+    #     "AIDA": list(datasets.get_aida_docs(
+    #         split="dev",
+    #         include_gold_label=True,
+    #         filter_not_in_kb=True,
+    #         include_spans=True,
+    #     ))
+    # }
+
+    # start_fine_tuning_task(refined=refined,
+    #                        fine_tuning_args=fine_tuning_args,
+    #                        train_docs=list(datasets.get_aida_docs(split="train", include_gold_label=True)),
+    #                        evaluation_dataset_name_to_docs=evaluation_dataset_name_to_docs)
+
     start_fine_tuning_task(refined=refined,
                            fine_tuning_args=fine_tuning_args,
-                           train_docs=list(datasets.get_aida_docs(split="train", include_gold_label=True)),
-                           evaluation_dataset_name_to_docs=evaluation_dataset_name_to_docs)
+                           train_docs=list(datasets.get_generic_lang_docs(
+                               filename="/media/dhruv/T7/ELA_/ReFinED/src/refined/offline_data_generation/data/de_wikipedia_links_aligned_10_with_qcodes.jsonl"
+                           )),
+                           evaluation_dataset_name_to_docs=de_dataset_name_to_docs)
 
 
 def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
@@ -182,7 +204,7 @@ def run_checkpoint_eval_and_save(best_f1: float, evaluation_dataset_name_to_docs
         fine_tuning_args.to_file(os.path.join(model_output_dir, "fine_tuning_args.json"))
         model_to_save.config.to_file(os.path.join(model_output_dir, "config.json"))
 
-        #save optimiser, scheduler, and scaler so training can be resumed if it crashes
+        # save optimiser, scheduler, and scaler so training can be resumed if it crashes
         torch.save(optimizer.state_dict(), os.path.join(model_output_dir, "optimizer.pt"))
         torch.save(scheduler.state_dict(), os.path.join(model_output_dir, "scheduler.pt"))
         torch.save(scaler.state_dict(), os.path.join(model_output_dir, "scaler.pt"))
