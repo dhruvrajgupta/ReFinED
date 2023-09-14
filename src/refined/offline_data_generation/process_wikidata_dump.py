@@ -7,29 +7,28 @@ import os
 from types import SimpleNamespace
 
 
-def extract_useful_info(entity, lang="en"):
-    # TODO: convert this to generic language
+def extract_useful_info(entity, lang='en'):
     qcode = entity['id']
-    if 'en' in entity['labels']:
-        entity_en_label = entity['labels']['en']['value']
+    if lang in entity['labels']:
+        entity_label = entity['labels'][lang]['value']
     else:
-        entity_en_label = None
-    if 'en' in entity['descriptions']:
-        entity_en_desc = entity['descriptions']['en']['value']
+        entity_label = None
+    if lang in entity['descriptions']:
+        entity_desc = entity['descriptions'][lang]['value']
     else:
-        entity_en_desc = None
-    if 'en' in entity['aliases']:
-        entity_en_aliases = [alias['value'] for alias in entity['aliases']['en']]
+        entity_desc = None
+    if lang in entity['aliases']:
+        entity_aliases = [alias['value'] for alias in entity['aliases'][lang]]
     else:
-        entity_en_aliases = []
+        entity_aliases = []
     if 'sitelinks' in entity:
         sitelinks = entity['sitelinks']
     else:
         sitelinks = {}
-    if 'enwiki' in sitelinks:
-        enwiki_title = sitelinks['enwiki']['title']
+    if f'{lang}wiki' in sitelinks:
+        wiki_title = sitelinks[f'{lang}wiki']['title']
     else:
-        enwiki_title = None
+        wiki_title = None
 
     sitelinks_cnt = len(sitelinks.items())
     statements_cnt = 0
@@ -44,8 +43,8 @@ def extract_useful_info(entity, lang="en"):
             if pcode not in triples:
                 triples[pcode] = []
             triples[pcode].append(obj['mainsnak']['datavalue']['value']['id'])
-    return {'qcode': qcode, 'label': entity_en_label, 'desc': entity_en_desc,
-            'aliases': entity_en_aliases, 'sitelinks_cnt': sitelinks_cnt, 'enwiki': enwiki_title,
+    return {'qcode': qcode, 'label': entity_label, 'desc': entity_desc,
+            'aliases': entity_aliases, 'sitelinks_cnt': sitelinks_cnt, 'wiki_title': wiki_title,
             'statements_cnt': statements_cnt, 'triples': triples}
 
 
