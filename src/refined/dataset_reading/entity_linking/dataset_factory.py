@@ -307,3 +307,101 @@ class Datasets:
                     )
                 yield Doc.from_text_with_spans(text=text, spans=spans, preprocessor=self.preprocessor,
                                                md_spans=md_spans)
+
+    def get_generic_lang_docs(
+            self,
+            # split: str,
+            filename,
+            include_spans: bool = True,
+            include_gold_label: bool = True,
+            filter_not_in_kb: bool = True,
+            include_mentions_for_nil: bool = True,
+    ) -> Iterable[Doc]:
+        # split_to_name = {
+        #     "train": "aida_train",
+        #     "dev": "aida_dev",
+        #     "test": "aida_test",
+        # }
+        # assert split in split_to_name, "split must be in {train, dev, test}"
+        # filename = self.datasets_to_files[split_to_name[split]]
+        with open(filename, "r") as f:
+            for line_idx, line in enumerate(f):
+                line = json.loads(line)
+                text = line["text"]
+                spans = None
+                md_spans = None
+                if include_spans:
+                    spans = []
+                    md_spans = []
+                    for span in line["hyperlinks"]:
+                        if include_mentions_for_nil:
+                            md_spans.append(
+                                Span(
+                                    start=span["start"],
+                                    ln=span["end"] - span["start"],
+                                    text=span["surface_form"],
+                                    coarse_type="MENTION"
+                                )
+                            )
+
+                        titles = [
+                            span["uri"]
+                        ]
+
+                        if len(titles) == 0:
+                            continue
+
+                        title = titles[0]
+                        if "qcode" in span.keys():
+                            qcode = span["qcode"]
+                        else:
+                            qcode = None
+                        # qcode = self.wikidata_mapper.map_title_to_wikidata_qcode(title)
+
+                        if filter_not_in_kb and (
+                                qcode is None or self.wikidata_mapper.wikidata_qcode_is_disambiguation_page(qcode)
+                        ):
+                            continue
+
+                        if not filter_not_in_kb and qcode is None:
+                            qcode = "Q0"
+
+                        if not include_mentions_for_nil:
+                            md_spans.append(
+                                Span(
+                                    start=span["start"],
+                                    ln=span["length"],
+                                    text=text[span["start"]: span["start"] + span["length"]],
+                                    coarse_type="MENTION"
+                                )
+                            )
+
+                        if include_gold_label:
+                            spans.append(
+                                Span(
+                                    start=span["start"],
+                                    ln=span["end"] - span["start"],
+                                    text=span["surface_form"],
+                                    gold_entity=Entity(wikidata_entity_id=qcode, wikipedia_entity_title=title),
+                                    coarse_type="MENTION"
+                                )
+                            )
+                        else:
+                            spans.append(
+                                Span(
+                                    start=span["start"],
+                                    ln=span["length"],
+                                    text=text[span["start"]: span["start"] + span["length"]],
+                                    coarse_type="MENTION"
+                                )
+                            )
+
+                if spans is None:
+                    yield Doc.from_text(
+                        text=text,
+                        preprocessor=self.preprocessor
+                    )
+                else:
+                    yield Doc.from_text_with_spans(
+                        text=text, spans=spans, md_spans=md_spans, preprocessor=self.preprocessor
+                    )
