@@ -44,7 +44,7 @@ def extract_useful_info(entity, lang='en'):
                 triples[pcode] = []
             triples[pcode].append(obj['mainsnak']['datavalue']['value']['id'])
     return {'qcode': qcode, 'label': entity_label, 'desc': entity_desc,
-            'aliases': entity_aliases, 'sitelinks_cnt': sitelinks_cnt, 'wiki_title': wiki_title,
+            'aliases': entity_aliases, 'sitelinks_cnt': sitelinks_cnt, f'{lang}wiki_title': langwiki_title,
             'statements_cnt': statements_cnt, 'triples': triples}
 
 
