@@ -49,7 +49,7 @@ def main():
             print(f"Time taken to process document: {doc_end_time - doc_start_time}s\n")
             print("*" * 50)
 
-        with open('data/de_wikipedia_links_aligned_10_with_qcodes.jsonl', 'w') as file:
+        with open('../offline_data_generation/data/de_wikipedia_links_aligned_10_with_qcodes.jsonl', 'w') as file:
             for line in updated_dicts:
                 file.write(json.dumps(line) + "\n")
         total_end_time = time.time()
