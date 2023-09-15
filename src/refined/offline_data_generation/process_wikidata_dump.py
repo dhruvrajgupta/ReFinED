@@ -7,7 +7,7 @@ import os
 from types import SimpleNamespace
 
 
-def extract_useful_info(entity, lang='en'):
+def extract_useful_info(entity, lang):
     qcode = entity['id']
     if lang in entity['labels']:
         entity_label = entity['labels'][lang]['value']
@@ -48,7 +48,7 @@ def extract_useful_info(entity, lang='en'):
             'statements_cnt': statements_cnt, 'triples': triples}
 
 
-def build_wikidata_lookups(args_override=None, lang="en"):
+def build_wikidata_lookups(args_override=None, lang='en'):
     if args_override is None:
         parser = argparse.ArgumentParser(description='Build lookup dictionaries from Wikidata JSON dump.')
         parser.add_argument(
@@ -84,7 +84,17 @@ def build_wikidata_lookups(args_override=None, lang="en"):
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
 
-    if os.path.exists(f'{args.output_dir}/sitelinks_cnt.json'):
+    # Create lang specific directory
+    lang_dir = f'{args.output_dir}/{lang}'
+    if not os.path.exists(lang_dir):
+        os.makedirs(lang_dir)
+
+    # Create common directory
+    common_dir = f'{args.output_dir}/common'
+    if not os.path.exists(common_dir):
+        os.makedirs(common_dir)
+
+    if os.path.exists(f'{lang_dir}/qcode_to_label.json'):
         # the script has already been run so do not repeat the work.
         return
 
@@ -92,41 +102,41 @@ def build_wikidata_lookups(args_override=None, lang="en"):
 
     # duplicate names in output_files to make removing .part easier after pre-processing has finished.
     filenames = [
-        f'{args.output_dir}/sitelinks_cnt.json.part',
-        f'{args.output_dir}/statements_cnt.json.part',
-        f'{args.output_dir}/{lang}wiki.json.part',
-        f'{args.output_dir}/desc.json.part',
-        f'{args.output_dir}/aliases.json.part',
-        f'{args.output_dir}/qcode_to_label.json.part',
-        f'{args.output_dir}/instance_of_p31.json.part',
-        f'{args.output_dir}/country_p17.json.part',
-        f'{args.output_dir}/sport_p641.json.part',
-        f'{args.output_dir}/occupation_p106.json.part',
-        f'{args.output_dir}/subclass_p279.json.part',
-        f'{args.output_dir}/pcodes.json.part',
-        f'{args.output_dir}/human_qcodes.json.part',
-        f'{args.output_dir}/disambiguation_qcodes.txt.part',
-        f'{args.output_dir}/triples.json.part',
-        f'{args.output_dir}/located_in_p131.json.part',
+        f'{common_dir}/sitelinks_cnt.json.part',
+        f'{common_dir}/statements_cnt.json.part',
+        f'{lang_dir}/{lang}wiki.json.part',
+        f'{lang_dir}/desc.json.part',
+        f'{lang_dir}/aliases.json.part',
+        f'{lang_dir}/qcode_to_label.json.part',
+        f'{common_dir}/instance_of_p31.json.part',
+        f'{common_dir}/country_p17.json.part',
+        f'{common_dir}/sport_p641.json.part',
+        f'{common_dir}/occupation_p106.json.part',
+        f'{common_dir}/subclass_p279.json.part',
+        f'{lang_dir}/pcodes.json.part',
+        f'{common_dir}/human_qcodes.json.part',
+        f'{common_dir}/disambiguation_qcodes.txt.part',
+        f'{common_dir}/triples.json.part',
+        f'{common_dir}/located_in_p131.json.part',
     ]
 
     output_files = {
-        'sitelinks_cnt': open(f'{args.output_dir}/sitelinks_cnt.json.part', 'w'),
-        'statements_cnt': open(f'{args.output_dir}/statements_cnt.json.part', 'w'),
-        lang+'wiki': open(f'{args.output_dir}/{lang}wiki.json.part', 'w'),
-        'desc': open(f'{args.output_dir}/desc.json.part', 'w'),
-        'aliases': open(f'{args.output_dir}/aliases.json.part', 'w'),
-        'label': open(f'{args.output_dir}/qcode_to_label.json.part', 'w'),
-        'instance_of_p31': open(f'{args.output_dir}/instance_of_p31.json.part', 'w'),
-        'country_p17': open(f'{args.output_dir}/country_p17.json.part', 'w'),
-        'sport_p641': open(f'{args.output_dir}/sport_p641.json.part', 'w'),
-        'occupation_p106': open(f'{args.output_dir}/occupation_p106.json.part', 'w'),
-        'subclass_p279': open(f'{args.output_dir}/subclass_p279.json.part', 'w'),
-        'properties': open(f'{args.output_dir}/pcodes.json.part', 'w'),
-        'humans': open(f'{args.output_dir}/human_qcodes.json.part', 'w'),
-        'disambiguation': open(f'{args.output_dir}/disambiguation_qcodes.txt.part', 'w'),
-        'triples': open(f'{args.output_dir}/triples.json.part', 'w'),
-        'located_in_p131': open(f'{args.output_dir}/located_in_p131.json.part', 'w'),
+        'sitelinks_cnt': open(f'{common_dir}/sitelinks_cnt.json.part', 'w'),
+        'statements_cnt': open(f'{common_dir}/statements_cnt.json.part', 'w'),
+        f'{lang}wiki': open(f'{lang_dir}/{lang}wiki.json.part', 'w'),
+        'desc': open(f'{lang_dir}/desc.json.part', 'w'),
+        'aliases': open(f'{lang_dir}/aliases.json.part', 'w'),
+        'label': open(f'{lang_dir}/qcode_to_label.json.part', 'w'),
+        'instance_of_p31': open(f'{common_dir}/instance_of_p31.json.part', 'w'),
+        'country_p17': open(f'{common_dir}/country_p17.json.part', 'w'),
+        'sport_p641': open(f'{common_dir}/sport_p641.json.part', 'w'),
+        'occupation_p106': open(f'{common_dir}/occupation_p106.json.part', 'w'),
+        'subclass_p279': open(f'{common_dir}/subclass_p279.json.part', 'w'),
+        'properties': open(f'{lang_dir}/pcodes.json.part', 'w'),
+        'humans': open(f'{common_dir}/human_qcodes.json.part', 'w'),
+        'disambiguation': open(f'{common_dir}/disambiguation_qcodes.txt.part', 'w'),
+        'triples': open(f'{common_dir}/triples.json.part', 'w'),
+        'located_in_p131': open(f'{common_dir}/located_in_p131.json.part', 'w'),
     }
 
     with bz2.open(args.dump_file_path, 'rb') as f:
@@ -149,9 +159,9 @@ def build_wikidata_lookups(args_override=None, lang="en"):
                 output_files['statements_cnt'] \
                     .write(json.dumps({'qcode': qcode, 'values': entity_content['statements_cnt']}) + '\n')
 
-            if entity_content[lang+'wiki']:
-                output_files[lang+'wiki'] \
-                    .write(json.dumps({'qcode': qcode, 'values': entity_content[lang+'wiki']}) + '\n')
+            if entity_content[f'{lang}wiki_title']:
+                output_files[f'{lang}wiki'] \
+                    .write(json.dumps({'qcode': qcode, 'values': entity_content[f'{lang}wiki_title']}) + '\n')
 
             if entity_content['desc']:
                 output_files['desc'] \
