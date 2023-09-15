@@ -170,7 +170,7 @@ def main():
         build_wikidata_lookups(args_override=args, lang='en')
     lang = 'de'
     LOG.info(f'Part 2. Building lookups and sets for Langugage - {lang}')
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'sitelinks_cnt.json')):
+    if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/{lang}')):
         build_wikidata_lookups(args_override=args, lang=lang)
 
     LOG.info('Step 3) Processing Wikipedia redirects dump.')
