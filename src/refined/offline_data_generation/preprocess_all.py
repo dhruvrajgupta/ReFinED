@@ -163,9 +163,15 @@ def main():
 
     LOG.info('Step 2) Processing Wikidata dump to build lookups and sets.')
     args = {'dump_file_path': os.path.join(OUTPUT_PATH, WIKIDATA_DUMP_FILE),
-            'output_dir': OUTPUT_PATH, 'overwrite_output_dir': True, 'test': False}
+            'output_dir': OUTPUT_PATH, 'overwrite_output_dir': True, 'test': True}
+    # Check and see if en wikidata is built
+    LOG.info('Part 1. Building lookups and sets for Language - en')
+    if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/en')):
+        build_wikidata_lookups(args_override=args, lang='en')
+    lang = 'de'
+    LOG.info(f'Part 2. Building lookups and sets for Langugage - {lang}')
     if not os.path.exists(os.path.join(OUTPUT_PATH, 'sitelinks_cnt.json')):
-        build_wikidata_lookups(args_override=args)
+        build_wikidata_lookups(args_override=args, lang=lang)
 
     LOG.info('Step 3) Processing Wikipedia redirects dump.')
     args = {'page_sql_gz_filepath': os.path.join(OUTPUT_PATH, WIKIPEDIA_PAGE_IDS_FILE),
