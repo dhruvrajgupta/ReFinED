@@ -50,7 +50,7 @@ def extract_useful_info(entity, lang):
 
 def build_wikidata_lookups(args_override=None, lang=None):
     if lang is None:
-        print("ERROR: No language specified. Please pass language parameter")
+        print("ERROR: Language not specified")
         return
     if args_override is None:
         parser = argparse.ArgumentParser(description='Build lookup dictionaries from Wikidata JSON dump.')
