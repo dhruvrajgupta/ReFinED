@@ -168,9 +168,11 @@ def main():
     LOG.info('Part 1. Building lookups and sets for Language - en')
     if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/en')):
         build_wikidata_lookups(args_override=args, lang='en')
-    lang = 'de'
+    # Stripping of '_' from LANG
+    lang = LANG[:-1]
+    lang_dir = f'{OUTPUT_PATH}/{lang}'
     LOG.info(f'Part 2. Building lookups and sets for Langugage - {lang}')
-    if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/{lang}')):
+    if not os.path.exists(os.path.join(lang_dir)):
         build_wikidata_lookups(args_override=args, lang=lang)
 
     LOG.info('Step 3) Processing Wikipedia redirects dump.')

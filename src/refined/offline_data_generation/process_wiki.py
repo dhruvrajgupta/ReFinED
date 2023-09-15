@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from tqdm import tqdm
 
 
-def build_redirects(args=None):
+def build_redirects(args=None, lang=None):
     if args is None:
         parser = argparse.ArgumentParser(description='Build lookup dictionaries from Wikipedia dumps.')
         parser.add_argument(
@@ -46,16 +46,22 @@ def build_redirects(args=None):
 
     args.output_dir = args.output_dir.rstrip('/')
 
-    if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and not args.overwrite_output_dir:
-        raise ValueError(f"Output directory ({args.output_dir}) already exists and is not empty. Use "
-                         f"--overwrite_output_dir to overwrite.")
-    if not os.path.exists(args.output_dir):
-        os.makedirs(args.output_dir)
-
-    if os.path.exists(os.path.join(args.output_dir, 'redirects.json')):
+    if lang is None:
+        print("Error: Language not specified")
         return
-    page_id_to_title: Dict[str, str] = generate_wiki_id_to_title(args.page_sql_gz_filepath, args.output_dir)
-    generate_redirects(args.redirect_sql_gz_filepath, args.output_dir, page_id_to_title)
+
+    lang_dir = f'{args.output_dir}/{lang}'
+
+    if os.path.exists(lang_dir) and os.listdir(lang_dir) and not args.overwrite_output_dir:
+        raise ValueError(f"Output directory ({lang_dir}) already exists and is not empty. Use "
+                         f"--overwrite_output_dir to overwrite.")
+    if not os.path.exists(lang_dir):
+        os.makedirs(lang_dir)
+
+    if os.path.exists(os.path.join(lang_dir, 'redirects.json')):
+        return
+    page_id_to_title: Dict[str, str] = generate_wiki_id_to_title(args.page_sql_gz_filepath, lang_dir)
+    generate_redirects(args.redirect_sql_gz_filepath, lang_dir, page_id_to_title)
 
 
 def generate_wiki_id_to_title(page_sql_gz_filepath: str, output_dir: str) -> Dict[str, str]:
@@ -72,6 +78,7 @@ def generate_wiki_id_to_title(page_sql_gz_filepath: str, output_dir: str) -> Dic
             parsed_line = [x[1:] if x[0] == '(' else x for x in parsed_line]
             parsed_line = [x[:-3] if x[-3:-1] == ');' else x for x in parsed_line]
             for x in parsed_line:
+                # NOTE: Many pages are being missed due to regex not matching (eg. Alan_Smithee, Actinium etc)
                 m = pattern.match(x)
                 if m is None:
                     continue
