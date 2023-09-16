@@ -107,19 +107,19 @@ def load_redirects(file_path: str, is_test: bool = False):
     return redirects
 
 
-def load_wikipedia_to_qcode(file_path: str, is_test: bool = False):
-    LOG.info("Loading enwiki sitelinks")
-    enwiki_to_qcode = dict()
+def load_wikipedia_to_qcode(file_path: str, is_test: bool = False, lang: str = 'en'):
+    LOG.info(f"Loading {lang}wiki sitelinks")
+    langwiki_to_qcode = dict()
     line_num = 0
     with open(file_path, "r") as f:
         for line in tqdm(f, total=8e6, desc="Loading enwiki sitelinks"):
             line = ujson.loads(line)
-            enwiki_to_qcode[line["values"].replace(" ", "_")] = line["qcode"]
+            langwiki_to_qcode[line["values"].replace(" ", "_")] = line["qcode"]
             line_num += 1
             if is_test and line_num > 10000:
                 break
-    LOG.info(f"Loaded enwiki_to_qcode, size = {len(enwiki_to_qcode)}")
-    return enwiki_to_qcode
+    LOG.info(f"Loaded {lang}wiki_to_qcode, size = {len(langwiki_to_qcode)}")
+    return langwiki_to_qcode
 
 
 def load_disambiguation_qcodes(file_path: str, is_test: bool = False):

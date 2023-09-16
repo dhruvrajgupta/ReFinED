@@ -57,10 +57,10 @@ def process_line(line, redirects, wikipedia_to_qcode, instance_of, wikimedia_int
     for m in ms:
         offset = m.start() - delta_string_length
         hyperlinks.append({
-                "uri": unquote(m.group(1)).replace(' ', '_'),
-                "surface_form": m.group(2),
-                "start": offset,
-                "end": offset + len(m.group(2))
+            "uri": unquote(m.group(1)).replace(' ', '_'),
+            "surface_form": m.group(2),
+            "start": offset,
+            "end": offset + len(m.group(2))
         })
         delta_string_length += len(m.group(0)) - len(m.group(2))
 
@@ -87,23 +87,27 @@ def process_line(line, redirects, wikipedia_to_qcode, instance_of, wikimedia_int
     line['hyperlinks_clean'] = clean_hyperlinks
     return line
 
-# TODO: make this generic lang
-def merge_files_and_extract_links(input_dir: str, resources_dir: str, output_dir: str, lang: str):
-    redirects = load_redirects(os.path.join(resources_dir, lang+'redirects.json'), is_test=True)
-    instance_of = load_instance_of(os.path.join(resources_dir, 'instance_of_p31.json'), is_test=True)
-    title_to_qcode = load_wikipedia_to_qcode(os.path.join(resources_dir, 'enwiki.json'), is_test=True)
 
-    with open(os.path.join(resources_dir, 'disambiguation_qcodes.txt'), 'r') as f:
+def merge_files_and_extract_links(input_dir: str, resources_dir: str, output_dir: str, lang: str):
+    redirects = load_redirects(os.path.join(f'{resources_dir}/{lang}', 'redirects.json'), is_test=True)
+    instance_of = load_instance_of(os.path.join(f'{resources_dir}/common', 'instance_of_p31.json'), is_test=True)
+    title_to_qcode = \
+        load_wikipedia_to_qcode(os.path.join(f'{resources_dir}/{lang}', f'{lang}wiki.json'), is_test=True, lang=lang)
+
+    with open(os.path.join(f'{resources_dir}/common', 'disambiguation_qcodes.txt'), 'r') as f:
         disambiguation_qcodes: Set[str] = {l.rstrip('\n') for l in f.readlines()}
 
     # list, surnames, redirects, and disambiguation (+ name disambiguation)
     deny_classes = DENY_CLASSES
 
-    processed_clean_wiki_file = open(os.path.join(output_dir, 'wikipedia_links_aligned.json'), 'w')
+    processed_clean_wiki_file = open(os.path.join(f'{output_dir}/{lang}', 'wikipedia_links_aligned.json'), 'w')
     pbar = tqdm(total=6e+6)
     for base_path, _, file_names in os.walk(input_dir):
         shuffle(file_names)
         for file_name in file_names:
+            # Prevent ._AA files
+            if file_name[0:2] == '._':
+                continue
             with open(os.path.join(base_path, file_name), 'r') as f:
                 for line in f:
                     line = json.loads(line)

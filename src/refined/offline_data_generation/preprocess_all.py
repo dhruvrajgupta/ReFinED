@@ -180,16 +180,16 @@ def main():
             'redirect_sql_gz_filepath': os.path.join(OUTPUT_PATH, WIKIPEDIA_REDIRECTS_FILE),
             'output_dir': OUTPUT_PATH,
             'overwrite_output_dir': True,
-            'test': False}
-    if not os.path.exists(os.path.join(OUTPUT_PATH, LANG + 'redirects.json')):
-        build_redirects(args=args)
+            'test': True}
+    if not os.path.exists(os.path.join(lang_dir, 'redirects.json')):
+        build_redirects(args=args, lang=lang)
 
     LOG.info('Step 4) Extract text from Wikipedia dump.')
-    if not os.path.exists(os.path.join(OUTPUT_PATH, LANG + 'wikipedia_links_aligned.json')):
+    if not os.path.exists(os.path.join(lang_dir, 'wikipedia_links_aligned.json')):
         preprocess_wikipedia(dump_path=os.path.join(OUTPUT_PATH, WIKIPEDIA_ARTICLES_FILE),
-                             save_path=os.path.join(OUTPUT_PATH, LANG + 'preprocessed_wikipedia'))
-        merge_files_and_extract_links(input_dir=os.path.join(OUTPUT_PATH, LANG + 'preprocessed_wikipedia'),
-                                      resources_dir=OUTPUT_PATH, output_dir=OUTPUT_PATH, lang=LANG)
+                             save_path=os.path.join(lang_dir, 'preprocessed_wikipedia'))
+        merge_files_and_extract_links(input_dir=os.path.join(lang_dir, 'preprocessed_wikipedia'),
+                                      resources_dir=OUTPUT_PATH, output_dir=OUTPUT_PATH, lang=lang)
 
     LOG.info('Step 5) Building PEM lookup.')
     # additional entity set file
