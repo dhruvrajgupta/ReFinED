@@ -163,7 +163,7 @@ def main():
 
     LOG.info('Step 2) Processing Wikidata dump to build lookups and sets.')
     args = {'dump_file_path': os.path.join(OUTPUT_PATH, WIKIDATA_DUMP_FILE),
-            'output_dir': OUTPUT_PATH, 'overwrite_output_dir': True, 'test': True}
+            'output_dir': OUTPUT_PATH, 'overwrite_output_dir': True, 'test': debug}
     # Check and see if en wikidata is built
     LOG.info('Part 1. Building lookups and sets for Language - en')
     if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/en')):
@@ -180,7 +180,7 @@ def main():
             'redirect_sql_gz_filepath': os.path.join(OUTPUT_PATH, WIKIPEDIA_REDIRECTS_FILE),
             'output_dir': OUTPUT_PATH,
             'overwrite_output_dir': True,
-            'test': True}
+            'test': debug}
     if not os.path.exists(os.path.join(lang_dir, 'redirects.json')):
         build_redirects(args=args, lang=lang)
 
@@ -211,7 +211,7 @@ def main():
     # add extra human and fictional humans to human qcodes
     # TODO add fictional human to original human qcodes as well
     if additional_entities is not None and len(additional_entities) > 0:
-        instance_of = load_instance_of(os.path.join(OUTPUT_PATH, 'instance_of_p31.json'), is_test=debug)
+        instance_of = load_instance_of(os.path.join(f'{OUTPUT_PATH}/common', 'instance_of_p31.json'), is_test=debug)
         human_qcodes: Set[str] = set()
         for qcode, classes in tqdm(instance_of.items(), desc='Adding human qcodes from instance_of'):
             if 'Q5' in classes or 'Q15632617' in classes:
@@ -221,17 +221,17 @@ def main():
             if 'Q5' in additional_entity.entity_types or 'Q15632617' in additional_entity.entity_types:
                 human_qcodes.add(additional_entity.entity_id)
 
-        with open(os.path.join(OUTPUT_PATH, 'human_qcodes.json'), 'w') as f_out:
+        with open(os.path.join(f'{OUTPUT_PATH}/common', 'human_qcodes.json'), 'w') as f_out:
             f_out.write('\n'.join(human_qcodes))
         del instance_of
 
     if not os.path.exists(os.path.join(OUTPUT_PATH, AIDA_MEANS_FILE)):
         download_url_with_progress_bar(url=AIDA_MEANS_URL, output_path=os.path.join(OUTPUT_PATH, AIDA_MEANS_FILE))
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'wiki_pem.json')):
-        build_pem_lookup(aligned_wiki_file=os.path.join(OUTPUT_PATH, 'wikipedia_links_aligned.json'),
+    if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/{lang}', 'wiki_pem.json')):
+        build_pem_lookup(aligned_wiki_file=os.path.join(f'{OUTPUT_PATH}/{lang}', 'wikipedia_links_aligned.json'),
                          output_dir=OUTPUT_PATH, resources_dir=OUTPUT_PATH, keep_all_entities=keep_all_entities,
                          additional_entities=additional_entities,
-                         is_test=debug)
+                         is_test=debug, lang=lang)
 
     LOG.info('Step 6) Building entity index from PEM.')
     if not os.path.exists(os.path.join(OUTPUT_PATH, 'qcode_to_idx.json')):

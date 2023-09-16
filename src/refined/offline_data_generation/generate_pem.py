@@ -47,14 +47,17 @@ def build_pem_lookup(aligned_wiki_file: str, output_dir: str, resources_dir: str
                      add_titles: bool = True,
                      add_redirects: bool = True, add_aida_means: bool = True, add_labels: bool = True,
                      add_aliases: bool = True, keep_all_entities: bool = True,
-                     additional_entities: Optional[List[AdditionalEntity]] = None):
+                     additional_entities: Optional[List[AdditionalEntity]] = None,
+                     lang: str = 'en'):
     # load lookups
-    redirects = load_redirects(os.path.join(resources_dir, 'redirects.json'), is_test=is_test)
-    instance_of = load_instance_of(os.path.join(resources_dir, 'instance_of_p31.json'), is_test=is_test)
-    wiki_title_to_qcode = load_wikipedia_to_qcode(os.path.join(resources_dir, 'enwiki.json'), is_test=is_test and False)
+    redirects = load_redirects(os.path.join(f'{resources_dir}/{lang}', 'redirects.json'), is_test=is_test)
+    instance_of = load_instance_of(os.path.join(f'{resources_dir}/common', 'instance_of_p31.json'), is_test=is_test)
+    wiki_title_to_qcode = \
+        load_wikipedia_to_qcode(os.path.join(f'{resources_dir}/{lang}', f'{lang}wiki.json'), is_test=is_test and False)
     aida_means: Iterator[Tuple[str, str]] = load_aida_means(os.path.join(resources_dir, 'aida_means.tsv.bz2'))
 
     wikidata_wikipedia_qcodes: Set[str] = set()
+    # All wikipages which have qcode are added
     for qcode in wiki_title_to_qcode.values():
         if qcode is not None and not (qcode in instance_of and len(instance_of[qcode] & DENY_CLASSES) > 0):
             wikidata_wikipedia_qcodes.add(qcode)
@@ -62,10 +65,10 @@ def build_pem_lookup(aligned_wiki_file: str, output_dir: str, resources_dir: str
     print('len(wikidata_wikipedia_qcodes)', len(wikidata_wikipedia_qcodes))
 
     # only add Wikidata entities with a Wikipedia page initially
-    labels: Dict[str, str] = load_labels(os.path.join(resources_dir, 'qcode_to_label.json'),
+    labels: Dict[str, str] = load_labels(os.path.join(f'{resources_dir}/{lang}', 'qcode_to_label.json'),
                                          qcodes=wikidata_wikipedia_qcodes,
                                          keep_all_entities=keep_all_entities, is_test=is_test)
-    aliases: Dict[str, List[str]] = load_aliases(os.path.join(resources_dir, 'aliases.json'),
+    aliases: Dict[str, List[str]] = load_aliases(os.path.join(f'{resources_dir}/{lang}', 'aliases.json'),
                                                  keep_all_entities=keep_all_entities, qcodes=wikidata_wikipedia_qcodes,
                                                  is_test=is_test)
 
@@ -163,8 +166,8 @@ def build_pem_lookup(aligned_wiki_file: str, output_dir: str, resources_dir: str
         pem[surface_form] = dict(sorted([(qcode, link_count / total_link_count) for qcode, link_count in
                                          qcode_link_counts.items()], key=lambda x: x[1], reverse=True))
 
-    with open(f'{output_dir}/wiki_pem.json.part', 'w') as output_file:
+    with open(f'{output_dir}/{lang}/wiki_pem.json.part', 'w') as output_file:
         for surface_form, qcode_probs in tqdm(pem.items()):
             output_file.write(json.dumps({'surface_form': surface_form, 'qcode_probs': qcode_probs}) + '\n')
 
-    os.rename(f'{output_dir}/wiki_pem.json.part', f'{output_dir}/wiki_pem.json')
+    os.rename(f'{output_dir}/{lang}/wiki_pem.json.part', f'{output_dir}/{lang}/wiki_pem.json')
