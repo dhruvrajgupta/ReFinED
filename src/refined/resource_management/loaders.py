@@ -112,7 +112,7 @@ def load_wikipedia_to_qcode(file_path: str, is_test: bool = False, lang: str = '
     langwiki_to_qcode = dict()
     line_num = 0
     with open(file_path, "r") as f:
-        for line in tqdm(f, total=8e6, desc="Loading enwiki sitelinks"):
+        for line in tqdm(f, total=8e6, desc=f"Loading {lang}wiki sitelinks"):
             line = ujson.loads(line)
             langwiki_to_qcode[line["values"].replace(" ", "_")] = line["qcode"]
             line_num += 1

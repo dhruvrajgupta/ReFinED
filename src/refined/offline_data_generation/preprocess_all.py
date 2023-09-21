@@ -117,6 +117,7 @@ def build_entity_index(pem_filename: str, output_path: str):
     for qcode_probs in tqdm(pem.values(), total=18749702):
         all_qcodes.update(set(qcode_probs.keys()))
     qcode_to_index = {qcode: qcode_idx + 1 for qcode_idx, qcode in enumerate(list(all_qcodes))}
+    # all_qcodes are randomly placed so index becomes random too....does this affect??
 
     with open(os.path.join(output_path, 'qcode_to_idx.json.part'), 'w') as fout:
         for k, v in qcode_to_index.items():
@@ -234,17 +235,17 @@ def main():
                          is_test=debug, lang=lang)
 
     LOG.info('Step 6) Building entity index from PEM.')
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'qcode_to_idx.json')):
-        build_entity_index(os.path.join(OUTPUT_PATH, 'wiki_pem.json'), OUTPUT_PATH)
+    if not os.path.exists(os.path.join(lang_dir, 'qcode_to_idx.json')):
+        build_entity_index(os.path.join(lang_dir, 'wiki_pem.json'), lang_dir)
 
     # build descriptions (include labels without descriptions, maybe some alts as well should keep it short)
     LOG.info('Step 7) Building descriptions tensor.')
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'descriptions_tns.pt')):
-        create_description_tensor(output_path=OUTPUT_PATH,
-                                  qcode_to_idx_filename=os.path.join(OUTPUT_PATH, 'qcode_to_idx.json'),
-                                  desc_filename=os.path.join(OUTPUT_PATH, 'desc.json'),
-                                  label_filename=os.path.join(OUTPUT_PATH, 'qcode_to_label.json'),
-                                  wiki_to_qcode=os.path.join(OUTPUT_PATH, 'enwiki.json'),
+    if not os.path.exists(os.path.join(lang_dir, 'descriptions_tns.pt')):
+        create_description_tensor(output_path=lang_dir,
+                                  qcode_to_idx_filename=os.path.join(lang_dir, 'qcode_to_idx.json'),
+                                  desc_filename=os.path.join(lang_dir, 'desc.json'),
+                                  label_filename=os.path.join(lang_dir, 'qcode_to_label.json'),
+                                  wiki_to_qcode=os.path.join(lang_dir, f'{lang}wiki.json'),
                                   additional_entities=additional_entities,
                                   keep_all_entities=keep_all_entities,
                                   is_test=debug)
