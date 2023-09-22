@@ -20,18 +20,20 @@ EXCLUDE_LIST_AND_DISAMBIGUATION_PAGES = True
 
 
 def create_tensors(resources_dir: str, additional_entities: Optional[List[AdditionalEntity]] = None,
-                   is_test: bool = False):
-    class_to_idx: Dict[str, int] = create_class_to_idx(os.path.join(resources_dir, 'chosen_classes.txt'))
+                   is_test: bool = False, lang: str = 'en'):
+    lang_dir = f'{resources_dir}/{lang}'
+    common_dir = f'{resources_dir}/common'
+    class_to_idx: Dict[str, int] = create_class_to_idx(os.path.join(lang_dir, 'chosen_classes.txt'))
     chosen_classes: Set[str] = set(class_to_idx.keys())
 
-    qcode_to_idx = load_qcode_to_idx(os.path.join(resources_dir, 'qcode_to_idx.json'))
+    qcode_to_idx = load_qcode_to_idx(os.path.join(lang_dir, 'qcode_to_idx.json'))
     # qcode_to_idx: Dict[str, int] = create_qcode_to_idx(os.path.join(resources_dir, 'wiki_pem.json'), is_test=is_test)
     print('len(qcode_to_idx)', len(qcode_to_idx))
-    subclasses, _ = load_subclasses(os.path.join(resources_dir, 'subclass_p279.json'), is_test=is_test)
-    instance_of = load_instance_of(os.path.join(resources_dir, 'instance_of_p31.json'), is_test=is_test)
-    occupations = load_occuptations(os.path.join(resources_dir, 'occupation_p106.json'), is_test=is_test)
-    sports = load_sports(os.path.join(resources_dir, 'sport_p641.json'), is_test=is_test)
-    country = load_country(os.path.join(resources_dir, 'country_p17.json'), is_test=is_test)
+    subclasses, _ = load_subclasses(os.path.join(common_dir, 'subclass_p279.json'), is_test=is_test)
+    instance_of = load_instance_of(os.path.join(common_dir, 'instance_of_p31.json'), is_test=is_test)
+    occupations = load_occuptations(os.path.join(common_dir, 'occupation_p106.json'), is_test=is_test)
+    sports = load_sports(os.path.join(common_dir, 'sport_p641.json'), is_test=is_test)
+    country = load_country(os.path.join(common_dir, 'country_p17.json'), is_test=is_test)
     class_explorer = ClassHandler(subclasses=subclasses,
                                   qcode_to_idx=qcode_to_idx,
                                   qcode_idx_to_class_idx=None,  # TODO fix this
@@ -79,9 +81,9 @@ def create_tensors(resources_dir: str, additional_entities: Optional[List[Additi
     print('qcode_to_class_idx row 0-10', list(enumerate(qcode_to_class_idx[:10])))
     print('qcode_to_idx row 0-10', list(enumerate(list(qcode_to_idx.items())[:10])))
     print('class_to_idx row 0-10', list(enumerate(list(class_to_idx.items())[:10])))
-    torch.save(qcode_to_class_idx, f'{resources_dir}/qcode_to_class_tns.pt')
+    torch.save(qcode_to_class_idx, f'{lang_dir}/qcode_to_class_tns.pt')
 
-    qcode_to_class_np = np.memmap(f"{resources_dir}/qcode_to_class_tns_{qcode_to_class_idx.size(0)}-{qcode_to_class_idx.size(1)}.np",
+    qcode_to_class_np = np.memmap(f"{lang_dir}/qcode_to_class_tns_{qcode_to_class_idx.size(0)}-{qcode_to_class_idx.size(1)}.np",
                                   shape=qcode_to_class_idx.size(),
                                   dtype=np.int16,
                                   mode='w+')
@@ -91,7 +93,7 @@ def create_tensors(resources_dir: str, additional_entities: Optional[List[Additi
     # qcode_to_class_idx.numpy().tofile(f'{resources_dir}/qcode_to_class_tns.np')
     # with open(f'{resources_dir}/qcode_to_idx.json', 'w') as f:
     #     json.dump(qcode_to_idx, f)
-    with open(f'{resources_dir}/class_to_idx.json', 'w') as f:
+    with open(f'{lang_dir}/class_to_idx.json', 'w') as f:
         json.dump(class_to_idx, f)
 
 
