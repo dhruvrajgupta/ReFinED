@@ -252,7 +252,7 @@ def main():
 
     LOG.info('Step 8) Selecting classes tensor.')
     if not os.path.exists(os.path.join(OUTPUT_PATH, 'chosen_classes.txt')):
-        select_classes(resources_dir=OUTPUT_PATH, is_test=debug)
+        select_classes(resources_dir=OUTPUT_PATH, is_test=debug, lang=lang)
 
     LOG.info('Step 9) Creating tensors.')
     if not os.path.exists(os.path.join(OUTPUT_PATH, 'class_to_idx.json')):

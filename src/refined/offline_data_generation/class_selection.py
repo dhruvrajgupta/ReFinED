@@ -116,14 +116,17 @@ def ent_good_classes(entity: Dict[str, Any], pem, occupations, sports, country, 
     return set(), already_separated, conflicting_qcodes
 
 
+# TODO needs to be reviewed outside debug mode
 def select_classes(resources_dir: str, add_class_every_n_pages: int = 5000, number_of_classes: int = 1400,
-                   is_test: bool = False):
-    pem = load_pem(os.path.join(resources_dir, 'wiki_pem.json'), is_test=is_test)
-    subclasses, _ = load_subclasses(os.path.join(resources_dir, 'subclass_p279.json'), is_test=is_test)
-    instance_of = load_instance_of(os.path.join(resources_dir, 'instance_of_p31.json'), is_test=is_test)
-    occupations = load_occuptations(os.path.join(resources_dir, 'occupation_p106.json'), is_test=is_test)
-    sports = load_sports(os.path.join(resources_dir, 'sport_p641.json'), is_test=is_test)
-    country = load_country(os.path.join(resources_dir, 'country_p17.json'), is_test=is_test)
+                   is_test: bool = False, lang: str = 'en'):
+    lang_dir = f'{resources_dir}/{lang}'
+    common_dir = f'{resources_dir}/common'
+    pem = load_pem(os.path.join(lang_dir, 'wiki_pem.json'), is_test=is_test)
+    subclasses, _ = load_subclasses(os.path.join(common_dir, 'subclass_p279.json'), is_test=is_test)
+    instance_of = load_instance_of(os.path.join(common_dir, 'instance_of_p31.json'), is_test=is_test)
+    occupations = load_occuptations(os.path.join(common_dir, 'occupation_p106.json'), is_test=is_test)
+    sports = load_sports(os.path.join(common_dir, 'sport_p641.json'), is_test=is_test)
+    country = load_country(os.path.join(common_dir, 'country_p17.json'), is_test=is_test)
     class_explorer = ClassHandler(subclasses=subclasses,
                                   qcode_to_idx=None,
                                   qcode_idx_to_class_idx=None,  # TODO check it is fine to use None
@@ -134,7 +137,7 @@ def select_classes(resources_dir: str, add_class_every_n_pages: int = 5000, numb
 
     chosen_classes.update(download_common_wikidata_classes())
     while len(chosen_classes) < number_of_classes:
-        with open(os.path.join(resources_dir, 'wikipedia_links_aligned.json'), 'r') as f:
+        with open(os.path.join(lang_dir, 'wikipedia_links_aligned.json'), 'r') as f:
             good_class_all = []
             i = 0
             separated = 0
@@ -149,15 +152,15 @@ def select_classes(resources_dir: str, add_class_every_n_pages: int = 5000, numb
                                f"chosen classes. Note that this is not expected to happen. It likely indicates "
                                f"that the Wikidata dump or Wikipedia was dump was not downloaded and parsed "
                                f"correctly. ")
-                    os.rename(os.path.join(resources_dir, 'chosen_classes.txt.part'),
-                              os.path.join(resources_dir, 'chosen_classes.txt'))
+                    os.rename(os.path.join(lang_dir, 'chosen_classes.txt.part'),
+                              os.path.join(lang_dir, 'chosen_classes.txt'))
                     return
 
                 if (i + 1) % (add_class_every_n_pages * 1) == 0 and len(good_class_all) > 0:
                     pop_precision = tp_p / (tp_p + fp_p + 5e-6) * 100
                     s_rate = separated / (num_ents + 1e-6) * 100
                     tqdm.write(f'Popularity precision {pop_precision}, No Popularity precision: {s_rate}')
-                    with open(os.path.join(resources_dir, 'chosen_classes.txt.part'), 'w') as f_out:
+                    with open(os.path.join(lang_dir, 'chosen_classes.txt.part'), 'w') as f_out:
                         f_out.write('\n'.join([x for x in chosen_classes]))
 
                 if (i + 1) % add_class_every_n_pages == 0 and len(good_class_all) > 0:
@@ -194,5 +197,5 @@ def select_classes(resources_dir: str, add_class_every_n_pages: int = 5000, numb
                         tp_p += 1
                     else:
                         fp_p += 1
-    os.rename(os.path.join(resources_dir, 'chosen_classes.txt.part'),
-              os.path.join(resources_dir, 'chosen_classes.txt'))
+    os.rename(os.path.join(lang_dir, 'chosen_classes.txt.part'),
+              os.path.join(lang_dir, 'chosen_classes.txt'))
