@@ -259,8 +259,8 @@ def main():
         create_tensors(resources_dir=OUTPUT_PATH, additional_entities=additional_entities, is_test=debug, lang=lang)
 
     LOG.info('Step 10) Creating class labels lookup')
-    if not os.path.exists(os.path.join(OUTPUT_PATH, 'class_to_label.json')):
-        build_class_labels(OUTPUT_PATH)
+    if not os.path.exists(os.path.join(lang_dir, 'class_to_label.json')):
+        build_class_labels(lang_dir)
 
     LOG.info('(Step 11) Training MD model for ontonotes numeric/date spans (date, cardinal, percent etc.)')
     # check if model exists
