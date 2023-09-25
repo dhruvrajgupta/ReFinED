@@ -2,6 +2,7 @@ import bz2
 import json
 
 from tqdm.auto import tqdm
+import logging
 import argparse
 import os
 from types import SimpleNamespace
@@ -49,6 +50,14 @@ def extract_useful_info(entity, lang):
 
 
 def build_wikidata_lookups(args_override=None, lang=None):
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(filename="build_wikidata_lookup_log.txt",
+                        filemode='a',
+                        format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                        datefmt='%H:%M:%S',
+                        level=logging.DEBUG)
+    logger.info("This is an INFO test message using Python logging")
+
     if lang is None:
         print("ERROR: Language not specified")
         return
@@ -145,6 +154,8 @@ def build_wikidata_lookups(args_override=None, lang=None):
     with bz2.open(args.dump_file_path, 'rb') as f:
         for line in tqdm(f, total=80e6):
             i += 1
+            if i%1e6 == 0:
+                logger.info(f"{i} out of {80e6}")
             if len(line) < 3:
                 continue
             line = line.decode('utf-8').rstrip(',\n')
