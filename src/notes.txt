@@ -1,0 +1,42 @@
+wiki_to_qcode - comes from enwiki.json
+filter_not_in_kb - if the mention is not in WD or WP filter out the mention then not included for fine-tuning (
+                    skip the mention in fine tuning), if the param is set to false the set Q0
+
+
+
+to_batch_elements():
+==================
+entity_pos = [1, 3, 5, 7, 9...]
+
+sent_spans
+ 0 - Calophyllum inophyllum\n\nCalophyllum inophyllum ist eine Pflanzenart aus der
+ 1 - Gattung
+ 2 -  \"
+ 3 - Calophyllum
+ 4 - \" innerhalb der Familie der
+ 5 - Calophyllaceae
+ 6 - . \"Calophyllum inophyllum\", auch Alexandrischer Lorbeer, Tamanu, Kamani oder Foraha genannt, ist ein
+ 7 - Hartholz
+ 8 - baum, dessen
+ 9 - Holz
+ 10 -  als Indisches Mahagoni oder Rosenholz gehandelt wurde, es ist auch im Handel als Bintangor. ...
+
+ total_sentence_spans = 28
+ entity_mask = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+                (sentence spans positions where entities are present)
+
+
+ BatchElement - Sentences with 510 length, contains the above
+
+ model.parameters() = (3, 768) (3,) (1369,768) (1369,) (1,1372) (1,) (1000,768) (1000,) (300,768) (300,) (1000,768) (1000,) (300,768) (300,) (50265,768) (514,768) (1,768) (768,) (768,) (768,768) (768,)....
+
+ model.get_et_params() - (1369,768) (1369,)
+
+
+
+
+
+ After full processing - check class_selection not in debug mode
+ 
+ # Maybe - not essential
+ Prevent common folder from rewriting
