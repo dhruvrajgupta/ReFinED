@@ -40,3 +40,68 @@ sent_spans
  
  # Maybe - not essential
  Prevent common folder from rewriting
+
+
+768 -> tokens(503) to embeddings size
+
+
+
+
+COMPONENETS
+=================================================================
+ BatchedElementTns -> Transformer 
+    input_ids - 1,503
+    attn_masks - 1,503
+    token_type - 1,503
+
+    Output - 1, 503, 768      - for every token classes
+    contextualized_embeddings
+
+
+MentionDetection -> NN (Classifier)
+        B = Begin entity (number usually used: 1)
+        I = In entity (number usually used: 2)
+        O = Not an entity (number usually used: 0)
+    
+    contextualized_embeddings - 1, 503, 768
+    ner_labels - 1, 503        - for every token whether named entity or not
+
+    Output - 1, 503, 3
+
+
+
+
+candidate_desc - 6, 30, 32
+candidate_class_values - 1, 6, 138 -> 6, 30, 1369
+class_targets - 6, 1369
+mention_embedding - 6, 768
+
+
+Desc Bi encoder
+CandidateDescriptionScore - NN - 
+   candidate_desc - 6, 30, 32
+   mention_embedding - 6, 768
+   candidate_entity_targets - 6, 31
+   candidate_desc_emb - None
+
+   Output - 6, 31 (num_ent, num_cands)
+
+
+EntityTyping - NN
+   mention_embedding - 6, 768
+   span_classes - 6, 1369
+
+   Output - 6, 1369
+
+
+EntityDisambiguation - Scores Candidate Entities
+   class_activations (from entity typing) - 6, 1369
+   candidate_entity_targets - 6, 31
+   candidate_pem_values - 6, 30
+   candidate_classes - 6, 30, 1369
+   candidate_description_scores - 6, 31
+
+   Output - 6, 31
+
+
+Entire Output - ModelReturn - et + ed + desc_loss + (md_loss)
