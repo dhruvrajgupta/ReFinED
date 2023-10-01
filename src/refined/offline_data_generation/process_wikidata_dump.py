@@ -7,7 +7,7 @@ import argparse
 import os
 from types import SimpleNamespace
 
-
+# TODO: check for duplicates if processed on different langs
 def extract_useful_info(entity, lang):
     qcode = entity['id']
     if lang in entity['labels']:
