@@ -53,7 +53,7 @@ def build_pem_lookup(aligned_wiki_file: str, output_dir: str, resources_dir: str
     redirects = load_redirects(os.path.join(f'{resources_dir}/{lang}', 'redirects.json'), is_test=is_test)
     instance_of = load_instance_of(os.path.join(f'{resources_dir}/common', 'instance_of_p31.json'), is_test=is_test)
     wiki_title_to_qcode = \
-        load_wikipedia_to_qcode(os.path.join(f'{resources_dir}/{lang}', f'{lang}wiki.json'), is_test=is_test and False)
+        load_wikipedia_to_qcode(os.path.join(f'{resources_dir}/{lang}', f'{lang}wiki.json'), is_test=is_test and False, lang=lang)
     aida_means: Iterator[Tuple[str, str]] = load_aida_means(os.path.join(resources_dir, 'aida_means.tsv.bz2'))
 
     wikidata_wikipedia_qcodes: Set[str] = set()
