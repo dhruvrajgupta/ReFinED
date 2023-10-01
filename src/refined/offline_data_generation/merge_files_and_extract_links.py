@@ -89,10 +89,10 @@ def process_line(line, redirects, wikipedia_to_qcode, instance_of, wikimedia_int
 
 
 def merge_files_and_extract_links(input_dir: str, resources_dir: str, output_dir: str, lang: str):
-    redirects = load_redirects(os.path.join(f'{resources_dir}/{lang}', 'redirects.json'), is_test=True)
-    instance_of = load_instance_of(os.path.join(f'{resources_dir}/common', 'instance_of_p31.json'), is_test=True)
+    redirects = load_redirects(os.path.join(f'{resources_dir}/{lang}', 'redirects.json'), is_test=False)
+    instance_of = load_instance_of(os.path.join(f'{resources_dir}/common', 'instance_of_p31.json'), is_test=False)
     title_to_qcode = \
-        load_wikipedia_to_qcode(os.path.join(f'{resources_dir}/{lang}', f'{lang}wiki.json'), is_test=True, lang=lang)
+        load_wikipedia_to_qcode(os.path.join(f'{resources_dir}/{lang}', f'{lang}wiki.json'), is_test=False, lang=lang)
 
     with open(os.path.join(f'{resources_dir}/common', 'disambiguation_qcodes.txt'), 'r') as f:
         disambiguation_qcodes: Set[str] = {l.rstrip('\n') for l in f.readlines()}
