@@ -104,4 +104,4 @@ EntityDisambiguation - Scores Candidate Entities
    Output - 6, 31
 
 
-Entire Output - ModelReturn - et + ed + desc_loss + (md_loss)
+Entire Output - ModelReturn - et + ed + desc_loss*0.01 + (md_loss)

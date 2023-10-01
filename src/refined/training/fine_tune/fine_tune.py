@@ -40,7 +40,7 @@ def main():
 
     de_dataset_name_to_docs = {
         "DE_WIKI": list(datasets.get_generic_lang_docs(
-            filename="/media/dhruv/T7/ELA_/ReFinED/src/refined/offline_data_generation/data/de_wikipedia_links_aligned_10_with_qcodes.jsonl",
+            filename="src/refined/offline_data_generation/data/wiki_fine_samp.json",
             include_gold_label=True,
             filter_not_in_kb=True,
             include_spans=True
@@ -64,7 +64,7 @@ def main():
     start_fine_tuning_task(refined=refined,
                            fine_tuning_args=fine_tuning_args,
                            train_docs=list(datasets.get_generic_lang_docs(
-                               filename="/media/dhruv/T7/ELA_/ReFinED/src/refined/offline_data_generation/data/de_wikipedia_links_aligned_10_with_qcodes.jsonl"
+                               filename="src/refined/offline_data_generation/data/wiki_fine_samp.json"
                            )),
                            evaluation_dataset_name_to_docs=de_dataset_name_to_docs)
 
