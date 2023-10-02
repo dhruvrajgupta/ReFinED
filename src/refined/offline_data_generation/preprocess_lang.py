@@ -69,8 +69,8 @@ def main():
         build_wikidata_lookups(args_override=args, lang='en')
 
     LOG.info('Part 2. Building lookups and sets for Language - de')
-    if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/de/dewiki.json')):
-        build_wikidata_lookups(args_override=args, lang='de')
+    if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/{lang}')):
+        build_wikidata_lookups(args_override=args, lang=lang)
 
     LOG.info('Step 3) Processing Wikipedia redirects dump.')
     args = {'page_sql_gz_filepath': os.path.join(lang_dir, WIKIPEDIA_PAGE_IDS_FILE),

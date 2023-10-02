@@ -50,7 +50,7 @@ def build_redirects(args=None, lang=None):
         print("Error: Language not specified")
         return
 
-    lang_dir = f'{args.output_dir}/{lang}'
+    lang_dir = args.output_dir
 
     if os.path.exists(lang_dir) and os.listdir(lang_dir) and not args.overwrite_output_dir:
         raise ValueError(f"Output directory ({lang_dir}) already exists and is not empty. Use "
