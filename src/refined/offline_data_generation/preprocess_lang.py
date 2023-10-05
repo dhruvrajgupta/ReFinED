@@ -1,4 +1,6 @@
 import os
+import logging
+import subprocess
 from argparse import ArgumentParser
 from refined.utilities.general_utils import get_logger
 from refined.offline_data_generation.process_wiki import build_redirects
@@ -10,6 +12,7 @@ from refined.offline_data_generation.preprocessing_utils import download_url_wit
 from refined.offline_data_generation.generate_pem import build_pem_lookup
 from refined.offline_data_generation.generate_descriptions_tensor import create_description_tensor
 from refined.offline_data_generation.class_selection import select_classes
+from refined.offline_data_generation.run_span_detection import run, add_spans_to_existing_datasets
 
 from typing import Set, Dict, List
 from refined.offline_data_generation.dataclasses_for_preprocessing import AdditionalEntity
@@ -45,6 +48,29 @@ def build_entity_index(pem_filename: str, output_path: str):
         for k, v in qcode_to_index.items():
             fout.write(json.dumps({'qcode': k, 'index': v}) + '\n')
     os.rename(os.path.join(output_path, 'qcode_to_idx.json.part'), os.path.join(output_path, 'qcode_to_idx.json'))
+
+def build_class_labels(resources_dir: str):
+    with open(os.path.join(resources_dir, 'chosen_classes.txt'), 'r') as f:
+        chosen_classes = {l.rstrip('\n') for l in f.readlines()}
+
+    labels = load_labels(os.path.join(resources_dir, 'qcode_to_label.json'), False)
+    cls_to_label: Dict[str, str] = dict()
+    for cls in chosen_classes:
+        if '<' in cls:
+            relation = cls.split(',')[0][1:]
+            object_qcode = cls.split(',')[1][:-1]
+            if object_qcode in labels:
+                object_qcode = labels[object_qcode]
+            cls_to_label[cls] = f'<{relation},{object_qcode}>'
+        else:
+            if cls in labels:
+                cls_to_label[cls] = labels[cls]
+            else:
+                cls_to_label[cls] = cls
+    with open(f'{resources_dir}/class_to_label.json', 'w') as f:
+        json.dump(cls_to_label, f)
+
+    logging.info('Written class to label')
 
 
 def main():
@@ -149,6 +175,30 @@ def main():
     LOG.info('Step 8) Selecting classes tensor.')
     if not os.path.exists(os.path.join(lang_dir, 'chosen_classes.txt')):
         select_classes(resources_dir=OUTPUT_PATH, is_test=debug, lang=lang)
+
+    LOG.info('Step 10) Creating class labels lookup')
+    if not os.path.exists(os.path.join(lang_dir, 'class_to_label.json')):
+        build_class_labels(lang_dir)
+
+    # model_dir_prefix = 'wikipedia_model'
+    # # Running over a small sample Wikipedia de
+    # LOG.info('Step 14) Running MD model over Wikipedia.')
+    # if not os.path.exists(os.path.join(lang_dir, 'wikipedia_links_aligned_spans.json')):
+    #     model_dir = [x[0] for x in list(os.walk(OUTPUT_PATH)) if model_dir_prefix in x[0]][0]
+    #     n_gpu = 1  # can change this to speed it up if more GPUs are available
+    #     # run(aligned_wiki_file=os.path.join(lang_dir, 'wikipedia_links_aligned.json'),
+    #     #     n_gpu=n_gpu, resources_dir=lang_dir, model_dir=model_dir)
+    #     run(aligned_wiki_file=os.path.join(lang_dir, 'small_wiki_sample.json'),
+    #         n_gpu=n_gpu, resources_dir=lang_dir, model_dir=model_dir)
+    #     command = 'cat '
+    #     for part_num in range(n_gpu):
+    #         command += os.path.abspath(
+    #             os.path.join(lang_dir, f'wikipedia_links_aligned.json_spans_{part_num}.json '))
+    #     f_out = open(os.path.abspath(os.path.join(lang_dir, 'wikipedia_links_aligned_spans.json')), 'w')
+    #     process = subprocess.Popen(command.split(), stdout=f_out)
+    #     output, error = process.communicate()
+    #     print(error)
+    #     f_out.close()
 
 
 if __name__ == "__main__":
