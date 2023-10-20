@@ -13,6 +13,8 @@ from refined.offline_data_generation.generate_pem import build_pem_lookup
 from refined.offline_data_generation.generate_descriptions_tensor import create_description_tensor
 from refined.offline_data_generation.class_selection import select_classes
 from refined.offline_data_generation.run_span_detection import run, add_spans_to_existing_datasets
+from refined.offline_data_generation.build_lmdb_dicts import build_lmdb_dicts
+from refined.offline_data_generation.generate_qcode_to_type_indices import create_tensors
 
 from typing import Set, Dict, List
 from refined.offline_data_generation.dataclasses_for_preprocessing import AdditionalEntity
@@ -176,6 +178,10 @@ def main():
     if not os.path.exists(os.path.join(lang_dir, 'chosen_classes.txt')):
         select_classes(resources_dir=OUTPUT_PATH, is_test=debug, lang=lang)
 
+    LOG.info('Step 9) Creating tensors.')
+    if not os.path.exists(os.path.join(lang_dir, 'class_to_idx.json')):
+        create_tensors(resources_dir=OUTPUT_PATH, additional_entities=additional_entities, is_test=debug, lang=lang)
+
     LOG.info('Step 10) Creating class labels lookup')
     if not os.path.exists(os.path.join(lang_dir, 'class_to_label.json')):
         build_class_labels(lang_dir)
@@ -199,6 +205,9 @@ def main():
     #     output, error = process.communicate()
     #     print(error)
     #     f_out.close()
+
+    LOG.info('Step 15) Building LMDB dictionaries and storing files in the expected file structures.')
+    build_lmdb_dicts(preprocess_all_data_dir=OUTPUT_PATH, keep_all_entities=keep_all_entities, lang=lang)
 
 
 if __name__ == "__main__":
