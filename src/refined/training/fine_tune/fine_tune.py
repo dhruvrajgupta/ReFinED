@@ -12,18 +12,20 @@ from tqdm.auto import trange, tqdm
 from transformers import get_linear_schedule_with_warmup
 
 from refined.data_types.doc_types import Doc
-from refined.dataset_reading.entity_linking.document_dataset import DocDataset
+from refined.dataset_reading.entity_linking.document_dataset import DocDataset, DocIterDataset
 from refined.evaluation.evaluation import get_datasets_obj, evaluate
 from refined.inference.processor import Refined
 from refined.training.fine_tune.fine_tune_args import FineTuningArgs, parse_fine_tuning_args
 from refined.training.train.training_args import TrainingArgs
 from refined.utilities.general_utils import get_logger
+import wandb
 
 LOG = get_logger(name=__name__)
-
+wandb.login()
 
 def main():
     fine_tuning_args = parse_fine_tuning_args()
+    fine_tuning_args.checkpoint_every_n_steps = 253138
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     LOG.info("Fine-tuning end-to-end EL" if fine_tuning_args.el else "Fine-tuning ED only.")
     # refined = Refined.from_pretrained(model_name=fine_tuning_args.model_name,
@@ -31,16 +33,49 @@ def main():
     #                                   use_precomputed_descriptions=fine_tuning_args.use_precomputed_descriptions,
     #                                   device=fine_tuning_args.device)
 
+    run = wandb.init(
+        # Set the project where this run will be logged
+        project="multilingual-refined",
+        # Track hyperparameters and run metadata
+        config=fine_tuning_args
+    )
+    dir = "../../offline_data_generation/data/organised_data_dir"
+    # train_path = f"{dir}/datasets/wikipedia_links_aligned_spans_dev_8.json"
+    # eval_path = f"{dir}/datasets/wikipedia_links_aligned_spans_eval_2.json"
+
+    train_path = f"{dir}/datasets/wikipedia_links_aligned_train.json"
+    eval_path = f"{dir}/datasets/wikipedia_links_aligned_eval.json"
     refined = Refined.from_pretrained(model_name="wikipedia_model",
+                                    #   data_dir="refined/offline_data_generation/data/organised_data_dir",
+                                      data_dir=dir,
                                       entity_set=fine_tuning_args.entity_set,
                                       use_precomputed_descriptions=fine_tuning_args.use_precomputed_descriptions,
-                                      device=fine_tuning_args.device, debug=True)
+                                      device=fine_tuning_args.device, 
+                                      debug=True,
+                                      download_files=False,
+                                      lang="de")
 
     datasets = get_datasets_obj(preprocessor=refined.preprocessor)
 
-    de_dataset_name_to_docs = {
-        "DE_WIKI": list(datasets.get_generic_lang_docs(
-            filename="src/refined/offline_data_generation/data/wiki_fine_samp.json",
+    de_train_dataset_name_to_docs = {
+        "DE_WIKI_TRAIN": datasets.get_generic_lang_docs(
+            # filename="refined/offline_data_generation/data/organised_data_dir/datasets/wikipedia_links_aligned_spans_dev_8.json",
+            # filename="refined/offline_data_generation/data/organised_data_dir/datasets/wikipedia_links_aligned_train.json",
+            filename=train_path,
+            include_gold_label=True,
+            filter_not_in_kb=True,
+            include_spans=True
+        )
+    }
+
+    LOG.info("Loading eval on mem...")
+
+    de_eval_dataset_name_to_docs = {
+        "DE_WIKI_EVAL": list(datasets.get_generic_lang_docs(
+            # filename="refined/offline_data_generation/data/organised_data_dir/datasets/wikipedia_links_aligned_spans_eval_2.json",
+            # filename="refined/offline_data_generation/data/organised_data_dir/datasets/wikipedia_links_aligned_eval_10.json",
+            # filename="refined/offline_data_generation/data/organised_data_dir/datasets/wikipedia_links_aligned_eval.json",
+            filename=eval_path,
             include_gold_label=True,
             filter_not_in_kb=True,
             include_spans=True
@@ -63,23 +98,23 @@ def main():
 
     start_fine_tuning_task(refined=refined,
                            fine_tuning_args=fine_tuning_args,
-                           train_docs=list(datasets.get_generic_lang_docs(
-                               filename="src/refined/offline_data_generation/data/wiki_fine_samp.json"
-                           )),
-                           evaluation_dataset_name_to_docs=de_dataset_name_to_docs)
+                           train_docs=de_train_dataset_name_to_docs["DE_WIKI_TRAIN"],
+                           evaluation_dataset_name_to_docs=de_eval_dataset_name_to_docs)
 
 
 def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
                            evaluation_dataset_name_to_docs: Dict[str, Iterable[Doc]],
                            fine_tuning_args: FineTuningArgs):
     LOG.info("Fine-tuning end-to-end EL" if fine_tuning_args.el else "Fine-tuning ED only.")
-    train_docs = list(train_docs)
-    training_dataset = DocDataset(
+    train_docs = train_docs
+    training_dataset = DocIterDataset(
         docs=train_docs,
-        preprocessor=refined.preprocessor
+        preprocessor=refined.preprocessor,
+        # approximate_length=8
+        approximate_length=2025106
     )
     training_dataloader = DataLoader(
-        dataset=training_dataset, batch_size=fine_tuning_args.batch_size, shuffle=True, num_workers=1,
+        dataset=training_dataset, batch_size=fine_tuning_args.batch_size, num_workers=1,
         collate_fn=training_dataset.collate
     )
 
@@ -132,6 +167,13 @@ def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, trai
         LOG.info(f"Starting epoch number {epoch_num}")
         for param_group in optimizer.param_groups:
             LOG.info(f"lr: {param_group['lr']}")
+        wandb.log({
+            "LR/et_lr": optimizer.param_groups[0]["lr"],
+            "LR/desc_lr": optimizer.param_groups[1]["lr"],
+            "LR/ed_lr": optimizer.param_groups[2]["lr"],
+            "LR/params_not_to_scale_lr": optimizer.param_groups[3]["lr"],
+            "LR/md_lr": optimizer.param_groups[4]["lr"],
+            })
         total_loss = 0.0
         for step, batch in tqdm(enumerate(training_dataloader), total=len(training_dataloader)):
             batch = batch.to(fine_tuning_args.device)
@@ -145,6 +187,7 @@ def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, trai
 
             loss = loss.mean()
             total_loss += loss.item()
+            wandb.log({"Loss": loss})
 
             if step % 100 == 99:
                 LOG.info(f"Loss: {total_loss / step}")
