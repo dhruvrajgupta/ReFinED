@@ -8,7 +8,7 @@ from refined.resource_management.loaders import load_pem, load_qcode_to_idx, loa
 from refined.resource_management.resource_manager import ResourceManager
 
 
-def build_lmdb_dicts(preprocess_all_data_dir: str, keep_all_entities: bool):
+def build_lmdb_dicts(preprocess_all_data_dir: str, keep_all_entities: bool, lang: str = 'en'):
     # This file intentionally duplicates files to avoid risk of losing files by overwritten them by mistake
     # with the resource_manager class.
     # Replace shutil.copy(src, dst) to os.rename(src, dst) to avoid duplicating files.
@@ -17,6 +17,8 @@ def build_lmdb_dicts(preprocess_all_data_dir: str, keep_all_entities: bool):
     # based on resource_constants.py and the resource_manager.
     # nest the output in the preprocess_all_data_dir data_dir
     # wikipedia or wikidata
+
+    common_dir = "common"
 
     new_data_dir = os.path.join(preprocess_all_data_dir, "organised_data_dir")
     os.makedirs(new_data_dir, exist_ok=True)
@@ -42,43 +44,43 @@ def build_lmdb_dicts(preprocess_all_data_dir: str, keep_all_entities: bool):
     # TODO what about "roberta_base_tokenizer_merges"
 
     # data files
-    # Set max_cands to 30 to save space
-    pem = load_pem(pem_file=os.path.join(preprocess_all_data_dir, "wiki_pem.json"), max_cands=None)
+    # Set max_cands to 30 to save space 
+    pem = load_pem(pem_file=os.path.join(f"{preprocess_all_data_dir}/{lang}", "wiki_pem.json"), max_cands=None)
     LmdbImmutableDict.from_dict(pem, output_file_path=data_files["wiki_pem"])
     del pem
-    shutil.copy(os.path.join(preprocess_all_data_dir, "class_to_label.json"), data_files["class_to_label"])
-    shutil.copy(os.path.join(preprocess_all_data_dir, "human_qcodes.json"), data_files["human_qcodes"])
-    shutil.copy(os.path.join(preprocess_all_data_dir, "class_to_idx.json"), data_files["class_to_idx"])
-    qcode_to_idx = load_qcode_to_idx(filename=os.path.join(preprocess_all_data_dir, "qcode_to_idx.json"))
+    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{lang}", "class_to_label.json"), data_files["class_to_label"])
+    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{common_dir}", "human_qcodes.json"), data_files["human_qcodes"])
+    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{lang}", "class_to_idx.json"), data_files["class_to_idx"])
+    qcode_to_idx = load_qcode_to_idx(filename=os.path.join(f"{preprocess_all_data_dir}/{lang}", "qcode_to_idx.json"))
     LmdbImmutableDict.from_dict(qcode_to_idx, output_file_path=data_files["qcode_to_idx"])
     del qcode_to_idx
 
-    qcode_to_class_tns_filename = [x for x in os.listdir(preprocess_all_data_dir) if "qcode_to_class_tns_" in x][0]
+    qcode_to_class_tns_filename = [x for x in os.listdir(f"{preprocess_all_data_dir}/{lang}") if "qcode_to_class_tns_" in x][0]
     # data_files["qcode_idx_to_class_idx"] cannot be used at the moment as the size is encoded in the filename
-    shutil.copy(os.path.join(preprocess_all_data_dir, qcode_to_class_tns_filename),
+    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{lang}", qcode_to_class_tns_filename),
                 os.path.join(new_data_dir, f"{entity_set}_data", qcode_to_class_tns_filename))
-    subclasses, _ = load_subclasses(os.path.join(preprocess_all_data_dir, "subclass_p279.json"))
+    subclasses, _ = load_subclasses(os.path.join(f"{preprocess_all_data_dir}/{common_dir}", "subclass_p279.json"))
     subclasses_with_lists = dict()
     for k, v in subclasses.items():
         subclasses_with_lists[k] = list(v)
     LmdbImmutableDict.from_dict(subclasses_with_lists, output_file_path=data_files["subclasses"])
-    shutil.copy(os.path.join(preprocess_all_data_dir, "descriptions_tns.pt"),
+    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{lang}", "descriptions_tns.pt"),
                 data_files["descriptions_tns"])
-    qcode_to_wiki = load_qcode_to_idx(os.path.join(preprocess_all_data_dir, "qcode_to_idx.json"))
+    qcode_to_wiki = load_qcode_to_idx(os.path.join(f"{preprocess_all_data_dir}/{lang}", "qcode_to_idx.json"))
     LmdbImmutableDict.from_dict(qcode_to_wiki, output_file_path=data_files["qcode_to_wiki"])
 
     # training data files
-    shutil.copy(os.path.join(preprocess_all_data_dir, "wikipedia_links_aligned_spans.json"),
+    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{lang}", "wikipedia_links_aligned_spans.json"),
                 training_data_files["wikipedia_training_dataset"])
 
     # additional_data_files
-    redirects = load_redirects(os.path.join(preprocess_all_data_dir, "redirects.json"))
+    redirects = load_redirects(os.path.join(f"{preprocess_all_data_dir}/{lang}", "redirects.json"))
     LmdbImmutableDict.from_dict(redirects, output_file_path=additional_data_files["redirects"])
-    shutil.copy(os.path.join(preprocess_all_data_dir, "disambiguation_qcodes.txt"),
+    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{common_dir}", "disambiguation_qcodes.txt"),
                 additional_data_files["disambiguation_qcodes"])
-    wiki_to_qcode = load_wikipedia_to_qcode(os.path.join(preprocess_all_data_dir, 'enwiki.json'))
+    wiki_to_qcode = load_wikipedia_to_qcode(os.path.join(f"{preprocess_all_data_dir}/{lang}", f'{lang}wiki.json'), lang=lang)
     LmdbImmutableDict.from_dict(wiki_to_qcode, output_file_path=additional_data_files["wiki_to_qcode"])
-    qcode_to_label = load_labels(os.path.join(preprocess_all_data_dir, 'qcode_to_label.json'))
+    qcode_to_label = load_labels(os.path.join(f"{preprocess_all_data_dir}/{lang}", 'qcode_to_label.json'))
     LmdbImmutableDict.from_dict(qcode_to_label, output_file_path=additional_data_files["qcode_to_label"])
 
     # add other expected files in the data_dir
