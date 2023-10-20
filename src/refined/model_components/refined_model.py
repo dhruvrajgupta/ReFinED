@@ -625,6 +625,16 @@ class RefinedModel(nn.Module):
         with open(model_file, "rb") as f:
             checkpoint = torch.load(io.BytesIO(f.read()), map_location="cpu")
 
+        # Changing head size for fine tuning
+        checkpoint['entity_typing.linear.weight'] = nn.Parameter(torch.randn(1105, 768))
+        checkpoint['entity_typing.linear.bias'] = nn.Parameter(torch.randn(1105))
+
+        for param in checkpoint.keys():
+            checkpoint[param].requires_grad = False
+
+        checkpoint['entity_typing.linear.weight'].requires_grad = True
+        checkpoint['entity_typing.linear.bias'].requires_grad = True
+
         # ensure code backwards compatible
         ed_params = checkpoint['entity_disambiguation.classifier.weight']
         if ed_params.size(-1) == 1378:
@@ -632,12 +642,14 @@ class RefinedModel(nn.Module):
             # should be [1, 1372]
             # pme + pem
             ed_params[:, -9] += ed_params[:, -7]
+            # should be [1, 1108] - de
+            ed_params = ed_params[:, :-264]
             mask = torch.ones_like(ed_params, dtype=torch.bool)
             # remove additional features weights
             mask[:, -5:] = False
             # remove pme feature
             mask[:, -7] = False
-            ed_params = ed_params[mask].unsqueeze(0)
+            ed_params = ed_params[mask].unsqueeze(0) #-6
             checkpoint['entity_disambiguation.classifier.weight'] = ed_params
 
         model.load_state_dict(checkpoint, strict=False)
