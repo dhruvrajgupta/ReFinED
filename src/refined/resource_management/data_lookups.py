@@ -17,7 +17,7 @@ import os
 class LookupsInferenceOnly:
 
     def __init__(self, entity_set: str, data_dir: str, use_precomputed_description_embeddings: bool = True,
-                 return_titles: bool = False):
+                 return_titles: bool = False, lang: str = "en"):
         self.entity_set = entity_set
         self.data_dir = data_dir
         self.use_precomputed_description_embeddings = use_precomputed_description_embeddings
@@ -34,6 +34,10 @@ class LookupsInferenceOnly:
         # replace all get_file and download_if needed
         # always use resource names that are provided instead of relying on same data_dirs
         # shape = (num_ents, max_num_classes)
+        if lang == "de":
+            file_path = resource_to_file_path["qcode_idx_to_class_idx"].split("/")
+            file_path[-1] = "qcode_to_class_tns_10241288-74.np"
+            resource_to_file_path["qcode_idx_to_class_idx"] = "/".join(file_path)
         self.qcode_idx_to_class_idx = np.memmap(
             resource_to_file_path["qcode_idx_to_class_idx"],
             shape=get_mmap_shape(resource_to_file_path["qcode_idx_to_class_idx"]),
