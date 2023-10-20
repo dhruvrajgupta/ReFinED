@@ -24,8 +24,18 @@ LOG = get_logger(name=__name__)
 wandb.login()
 
 def main():
+    languages = ["en", "de"]
+
     fine_tuning_args = parse_fine_tuning_args()
-    fine_tuning_args.checkpoint_every_n_steps = 253138
+    
+    fine_tuning_args.checkpoint_every_n_steps = 10000
+
+    # Check language present
+    if fine_tuning_args.language not in languages:
+        LOG.error(f"Language {fine_tuning_args.language} not available")
+        return
+    
+    
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     LOG.info("Fine-tuning end-to-end EL" if fine_tuning_args.el else "Fine-tuning ED only.")
     # refined = Refined.from_pretrained(model_name=fine_tuning_args.model_name,
