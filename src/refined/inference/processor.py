@@ -51,7 +51,8 @@ class Refined(object):
             inference_only: bool = True,
             return_titles: bool = False,
             preprocessor: Optional[Preprocessor] = None,
-            max_candidates: int = 30
+            max_candidates: int = 30,
+            lang: str = "en"
     ):
         """
         Constructs instance of Refined class.
@@ -84,7 +85,8 @@ class Refined(object):
                 download_files=download_files,
                 inference_only=inference_only,
                 return_titles=return_titles,
-                max_candidates=max_candidates
+                max_candidates=max_candidates,
+                lang=lang
             )
         else:
             self.preprocessor = preprocessor
@@ -458,7 +460,8 @@ class Refined(object):
             device: Optional[str] = None,
             use_precomputed_descriptions: bool = True,
             download_files: bool = True,
-            return_titles: bool = True
+            return_titles: bool = True,
+            lang: str = "en"
     ):
         """
         Load a pretrained ReFinED model.
@@ -516,7 +519,8 @@ class Refined(object):
             use_precomputed_descriptions=use_precomputed_descriptions,
             debug=debug,
             download_files=download_files,
-            return_titles=return_titles
+            return_titles=return_titles,
+            lang=lang
         )
 
     def precompute_description_embeddings(self, output_dir: Optional[str] = None):
