@@ -1,0 +1,371 @@
+(refined38) [fr_dg262@login1 src]$  cd /home/fr/fr_fr/fr_dg262/ReFinED/src ; /usr/bin/env /home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/bin/python3.8 /home/fr/fr_fr/fr_dg262/.vscode-server/extensions/ms-python.python-2023.18.0/pythonFiles/lib/python/debugpy/adapter/../../debugpy/launcher 60331 -- refined/training/fine_tune/fine_tune.py --experiment_name a 
+wandb: Currently logged in as: dhruv-learner. Use `wandb login --relogin` to force relogin
+/home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/lib/python3.8/site-packages/torch/cuda/amp/grad_scaler.py:120: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+  warnings.warn("torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.")
+23:39:52 - __main__ - INFO - Fine-tuning end-to-end EL
+wandb: Tracking run with wandb version 0.15.12
+wandb: Run data is saved locally in /home/fr/fr_fr/fr_dg262/ReFinED/src/wandb/run-20231019_233952-4myjyy56
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run smooth-snowball-62
+wandb: ⭐️ View project at https://wandb.ai/dhruv-learner/multilingual-refined
+wandb: 🚀 View run at https://wandb.ai/dhruv-learner/multilingual-refined/runs/4myjyy56
+23:40:30 - __main__ - INFO - Fine-tuning end-to-end EL
+INFO:__main__:Fine-tuning end-to-end EL
+  0%|                                                                                                                     | 0/10 [00:00<?, ?it/s]23:40:36 - __main__ - INFO - Starting epoch number 0
+INFO:__main__:Starting epoch number 0
+23:40:36 - __main__ - INFO - lr: 0.0
+INFO:__main__:lr: 0.0
+23:40:36 - __main__ - INFO - lr: 0.0
+INFO:__main__:lr: 0.0
+23:40:36 - __main__ - INFO - lr: 0.0
+INFO:__main__:lr: 0.0
+23:40:36 - __main__ - INFO - lr: 0.0
+INFO:__main__:lr: 0.0
+23:40:36 - __main__ - INFO - lr: 0.0
+INFO:__main__:lr: 0.0
+                                                                                                                                                /home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/lib/python3.8/site-packages/torch/amp/autocast_mode.py:204: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+                                                                                                                                                23:41:54 - refined.evaluation.evaluation - INFO - Running entity linking evaluation                      | 9/2025106 [00:50<2632:19:15,  4.68s/it]
+INFO:refined.evaluation.evaluation:Running entity linking evaluation
+                                              /home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/lib/python3.8/site-packages/torch/amp/autocast_mode.py:204: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+Evaluating on DE_WIKI_EVAL: 10it [00:19,  2.00s/it]
+*****************************
+Evaluating on DE_WIKI_EVAL: 10it [00:19,  1.52s/it]
+
+Dataset name: DE_WIKI_EVAL
+
+****************
+************
+f1: 0.1270
+accuracy: 0.1882
+gold_recall: 1.0000
+p: 0.0958
+r: 0.1882
+num_gold_spans: 85
+************
+*******MD*****
+MD_f1: 0.2916, (p: 0.2080, r: 0.4872)
+*****************
+
+*****************************
+
+
+23:42:43 - refined.evaluation.evaluation - INFO - Printing EL errors
+INFO:refined.evaluation.evaluation:Printing EL errors
+[{'doc_title': 'Peter Bence\n\nPeter B',
+  'fn_errors': [('5. September', 46, 'Q2854'),
+                ('1991', 59, 'Q2062'),
+                ('ungarischer', 73, 'Q28'),
+                ('Pianist', 85, 'Q486748'),
+                ('Komponist', 94, 'Q36834')],
+  'fp_errors': [('Peter Bence', 0, 'Q20747349'),
+                ('Peter Bence', 13, 'Q20747349'),
+                ('Bence Peter', 31, 'Q20747349'),
+                ('ungarischer', 73, 'Q28513'),
+                ('Guinness-Buch', 171, 'Q41675')]},
+ {'doc_title': 'Svetlana Makarovič\n\n',
+  'fn_errors': [('1. Januar', 42, 'Q2150'),
+                ('1939', 52, 'Q18639'),
+                ('Maribor', 60, 'Q1010'),
+                ('slowenische', 78, 'Q215'),
+                ('Dichter', 90, 'Q1293108')],
+  'fp_errors': [('Svetlana Makarovič', 0, 'Q2646595'),
+                ('Svetlana Makarovič', 20, 'Q2646595'),
+                ('Maribor', 60, 'Q975819'),
+                ('slowenische', 78, 'Q728135'),
+                ('Sloweniens', 268, 'Q728135')]},
+ {'doc_title': 'Extraliga (Slowakei,',
+  'fn_errors': [('slowakischen Extraliga im Schach', 89, 'Q21050061'),
+                ('Extraliga 2000/01', 408, 'Q21050421')],
+  'fp_errors': [('Extraliga', 0, 'Q871066'),
+                ('Slowakei', 11, 'Q214'),
+                ('Schach', 21, 'Q637177'),
+                ('Extraliga', 42, 'Q871066'),
+                ('slowakischen', 89, 'Q214')]},
+ {'doc_title': 'Plexus deferentialis',
+  'fn_errors': [('lat.', 82, 'Q397'),
+                ('Samenleiter', 133, 'Q735505'),
+                ('Plexus hypogastricus inferior', 251, 'Q1586543'),
+                ('Plexus testicularis', 377, 'Q7576380'),
+                ('Nebenhoden', 432, 'Q1973610')],
+  'fp_errors': []},
+ {'doc_title': 'Fütterung\n\nFütterung', 'fn_errors': [], 'fp_errors': []}]
+23:42:45 - refined.evaluation.evaluation - INFO - Printing MD errors
+INFO:refined.evaluation.evaluation:Printing MD errors
+[{'doc_title': 'Peter Bence\n\nPeter B',
+  'fn_errors_md': [('5. September', 46, 'MENTION'),
+                   ('1991', 59, 'MENTION'),
+                   ('Pianist', 85, 'MENTION'),
+                   ('Komponist', 94, 'MENTION'),
+                   ('Sounddesign', 108, 'MENTION')],
+  'fp_errors_md': [('Peter Bence', 0, 'MENTION'),
+                   ('Peter Bence', 13, 'MENTION'),
+                   ('Bence Peter', 31, 'MENTION'),
+                   ('Guinness-Buch', 171, 'MENTION'),
+                   ('Rekorde', 189, 'MENTION')]},
+ {'doc_title': 'Svetlana Makarovič\n\n',
+  'fn_errors_md': [('1. Januar', 42, 'MENTION'),
+                   ('1939', 52, 'MENTION'),
+                   ('Dichter', 90, 'MENTION'),
+                   ('Schriftsteller', 101, 'MENTION'),
+                   ('Schauspieler', 119, 'MENTION')],
+  'fp_errors_md': [('Svetlana Makarovič', 0, 'MENTION'),
+                   ('Svetlana Makarovič', 20, 'MENTION'),
+                   ('Sloweniens', 268, 'MENTION'),
+                   ('slowen', 407, 'MENTION'),
+                   ('Slowenien', 444, 'MENTION')]},
+ {'doc_title': 'Extraliga (Slowakei,',
+  'fn_errors_md': [('slowakischen Extraliga im Schach', 89, 'MENTION'),
+                   ('Extraliga 2000/01', 408, 'MENTION'),
+                   ('Rundenturnier', 734, 'MENTION'),
+                   ('Mannschaftskader der Extraliga (Slowakei, Schach) 2001/02',
+                    1284,
+                    'MENTION')],
+  'fp_errors_md': [('Extraliga', 0, 'MENTION'),
+                   ('Slowakei', 11, 'MENTION'),
+                   ('Schach', 21, 'MENTION'),
+                   ('Extraliga', 42, 'MENTION'),
+                   ('slowakischen', 89, 'MENTION')]},
+ {'doc_title': 'Plexus deferentialis',
+  'fn_errors_md': [('lat.', 82, 'MENTION'),
+                   ('Samenleiter', 133, 'MENTION'),
+                   ('Nervengeflecht', 154, 'MENTION'),
+                   ('Plexus hypogastricus inferior', 251, 'MENTION'),
+                   ('Innervation', 311, 'MENTION')],
+  'fp_errors_md': []},
+ {'doc_title': 'Fütterung\n\nFütterung',
+  'fn_errors_md': [],
+  'fp_errors_md': []}]
+23:43:20 - refined.evaluation.evaluation - INFO - Running entity disambiguation evaluation
+INFO:refined.evaluation.evaluation:Running entity disambiguation evaluation
+                                              /home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/lib/python3.8/site-packages/torch/amp/autocast_mode.py:204: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+Evaluating on DE_WIKI_EVAL: 10it [00:14,  1.47s/it]
+*****************************
+Evaluating on DE_WIKI_EVAL: 10it [00:14,  1.12s/it]
+
+Dataset name: DE_WIKI_EVAL
+
+****************
+************
+f1: 0.3787
+accuracy: 0.3765
+gold_recall: 1.0000
+p: 0.3810
+r: 0.3765
+num_gold_spans: 85
+************
+
+*****************************
+
+
+23:43:52 - refined.evaluation.evaluation - INFO - Printing ED errors
+INFO:refined.evaluation.evaluation:Printing ED errors
+[{'doc_title': 'Peter Bence\n\nPeter B',
+  'fn_errors': [('5. September', 46, 'Q2854'),
+                ('1991', 59, 'Q2062'),
+                ('ungarischer', 73, 'Q28'),
+                ('Pianist', 85, 'Q486748'),
+                ('Komponist', 94, 'Q36834')],
+  'fp_errors': [('5. September', 46, 'Q16963410'),
+                ('1991', 59, 'Q910856'),
+                ('ungarischer', 73, 'Q28513'),
+                ('Pianist', 85, 'Q150804'),
+                ('Komponist', 94, 'Q1268')]},
+ {'doc_title': 'Svetlana Makarovič\n\n',
+  'fn_errors': [('1. Januar', 42, 'Q2150'),
+                ('Maribor', 60, 'Q1010'),
+                ('slowenische', 78, 'Q215'),
+                ('Dichter', 90, 'Q1293108'),
+                ('Schriftsteller', 101, 'Q36180')],
+  'fp_errors': [('1. Januar', 42, 'Q1964220'),
+                ('Maribor', 60, 'Q975819'),
+                ('slowenische', 78, 'Q728135'),
+                ('Dichter', 90, 'Q85469'),
+                ('Schriftsteller', 101, 'Q33977')]},
+ {'doc_title': 'Extraliga (Slowakei,',
+  'fn_errors': [('Extraliga 2000/01', 408, 'Q21050421')],
+  'fp_errors': [('Extraliga 2000/01', 408, 'Q840755')]},
+ {'doc_title': 'Plexus deferentialis',
+  'fn_errors': [('lat.', 82, 'Q397')],
+  'fp_errors': [('lat.', 82, 'Q211')]},
+ {'doc_title': 'Fütterung\n\nFütterung', 'fn_errors': [], 'fp_errors': []}]
+23:43:58 - __main__ - INFO - Using EL performance for checkpoint metric
+INFO:__main__:Using EL performance for checkpoint metric
+23:44:02 - __main__ - INFO - Obtained best F1 so far of 0.127 (previous best 0.000)
+INFO:__main__:Obtained best F1 so far of 0.127 (previous best 0.000)
+23:44:08 - __main__ - INFO - Storing model at fine_tuned_models/a/f1_0.1270 along with optimizer, scheduler, and scaler
+INFO:__main__:Storing model at fine_tuned_models/a/f1_0.1270 along with optimizer, scheduler, and scaler
+                                                                                                                                                /home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/lib/python3.8/site-packages/torch/amp/autocast_mode.py:204: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+                                                                                                                                                23:45:41 - refined.evaluation.evaluation - INFO - Running entity linking evaluation                     | 19/2025106 [04:42<3870:58:00,  6.88s/it]
+INFO:refined.evaluation.evaluation:Running entity linking evaluation
+                                              /home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/lib/python3.8/site-packages/torch/amp/autocast_mode.py:204: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+Evaluating on DE_WIKI_EVAL: 10it [00:19,  1.98s/it]
+*****************************
+Evaluating on DE_WIKI_EVAL: 10it [00:19,  1.47s/it]
+
+Dataset name: DE_WIKI_EVAL
+
+****************
+************
+f1: 0.1355
+accuracy: 0.2000
+gold_recall: 1.0000
+p: 0.1024
+r: 0.2000
+num_gold_spans: 85
+************
+*******MD*****
+MD_f1: 0.2916, (p: 0.2080, r: 0.4872)
+*****************
+
+*****************************
+
+
+23:46:01 - refined.evaluation.evaluation - INFO - Printing EL errors
+INFO:refined.evaluation.evaluation:Printing EL errors
+[{'doc_title': 'Peter Bence\n\nPeter B',
+  'fn_errors': [('5. September', 46, 'Q2854'),
+                ('1991', 59, 'Q2062'),
+                ('ungarischer', 73, 'Q28'),
+                ('Pianist', 85, 'Q486748'),
+                ('Komponist', 94, 'Q36834')],
+  'fp_errors': [('Peter Bence', 0, 'Q20747349'),
+                ('Peter Bence', 13, 'Q20747349'),
+                ('Bence', 31, 'Q12475675'),
+                ('Peter', 37, 'Q33923'),
+                ('ungarischer', 73, 'Q28513')]},
+ {'doc_title': 'Svetlana Makarovič\n\n',
+  'fn_errors': [('1. Januar', 42, 'Q2150'),
+                ('1939', 52, 'Q18639'),
+                ('slowenische', 78, 'Q215'),
+                ('Dichter', 90, 'Q1293108'),
+                ('Schriftsteller', 101, 'Q36180')],
+  'fp_errors': [('Svetlana Makarovič', 0, 'Q2646595'),
+                ('Svetlana Makarovič', 20, 'Q2646595'),
+                ('slowen', 78, 'Q9063'),
+                ('Sloweniens', 268, 'Q728135'),
+                ('slowen', 407, 'Q9063')]},
+ {'doc_title': 'Extraliga (Slowakei,',
+  'fn_errors': [('slowakischen Extraliga im Schach', 89, 'Q21050061'),
+                ('Extraliga 2000/01', 408, 'Q21050421')],
+  'fp_errors': [('Extraliga', 0, 'Q871066'),
+                ('Slowakei', 11, 'Q214'),
+                ('Schach', 21, 'Q637177'),
+                ('Extraliga', 42, 'Q871066'),
+                ('slowakischen', 89, 'Q214')]},
+ {'doc_title': 'Plexus deferentialis',
+  'fn_errors': [('lat.', 82, 'Q397'),
+                ('Samenleiter', 133, 'Q735505'),
+                ('Plexus hypogastricus inferior', 251, 'Q1586543'),
+                ('Plexus testicularis', 377, 'Q7576380'),
+                ('Nebenhoden', 432, 'Q1973610')],
+  'fp_errors': []},
+ {'doc_title': 'Fütterung\n\nFütterung', 'fn_errors': [], 'fp_errors': []}]
+23:46:01 - refined.evaluation.evaluation - INFO - Printing MD errors
+INFO:refined.evaluation.evaluation:Printing MD errors
+[{'doc_title': 'Peter Bence\n\nPeter B',
+  'fn_errors_md': [('5. September', 46, 'MENTION'),
+                   ('1991', 59, 'MENTION'),
+                   ('Pianist', 85, 'MENTION'),
+                   ('Komponist', 94, 'MENTION'),
+                   ('Sounddesign', 108, 'MENTION')],
+  'fp_errors_md': [('Peter Bence', 0, 'MENTION'),
+                   ('Peter Bence', 13, 'MENTION'),
+                   ('Bence', 31, 'MENTION'),
+                   ('Peter', 37, 'MENTION'),
+                   ('frühester', 290, 'MENTION')]},
+ {'doc_title': 'Svetlana Makarovič\n\n',
+  'fn_errors_md': [('1. Januar', 42, 'MENTION'),
+                   ('1939', 52, 'MENTION'),
+                   ('slowenische', 78, 'MENTION'),
+                   ('Dichter', 90, 'MENTION'),
+                   ('Schriftsteller', 101, 'MENTION')],
+  'fp_errors_md': [('Svetlana Makarovič', 0, 'MENTION'),
+                   ('Svetlana Makarovič', 20, 'MENTION'),
+                   ('slowen', 78, 'MENTION'),
+                   ('Sloweniens', 268, 'MENTION'),
+                   ('slowen', 407, 'MENTION')]},
+ {'doc_title': 'Extraliga (Slowakei,',
+  'fn_errors_md': [('slowakischen Extraliga im Schach', 89, 'MENTION'),
+                   ('Extraliga 2000/01', 408, 'MENTION'),
+                   ('Rundenturnier', 734, 'MENTION'),
+                   ('Mannschaftskader der Extraliga (Slowakei, Schach) 2001/02',
+                    1284,
+                    'MENTION')],
+  'fp_errors_md': [('Extraliga', 0, 'MENTION'),
+                   ('Slowakei', 11, 'MENTION'),
+                   ('Schach', 21, 'MENTION'),
+                   ('Extraliga', 42, 'MENTION'),
+                   ('slowakischen', 89, 'MENTION')]},
+ {'doc_title': 'Plexus deferentialis',
+  'fn_errors_md': [('lat.', 82, 'MENTION'),
+                   ('Samenleiter', 133, 'MENTION'),
+                   ('Nervengeflecht', 154, 'MENTION'),
+                   ('Plexus hypogastricus inferior', 251, 'MENTION'),
+                   ('Innervation', 311, 'MENTION')],
+  'fp_errors_md': []},
+ {'doc_title': 'Fütterung\n\nFütterung',
+  'fn_errors_md': [],
+  'fp_errors_md': []}]
+23:46:12 - refined.evaluation.evaluation - INFO - Running entity disambiguation evaluation
+INFO:refined.evaluation.evaluation:Running entity disambiguation evaluation
+                                              /home/fr/fr_fr/fr_dg262/miniconda3/envs/refined38/lib/python3.8/site-packages/torch/amp/autocast_mode.py:204: UserWarning: User provided device_type of 'cuda', but CUDA is not available. Disabling
+  warnings.warn('User provided device_type of \'cuda\', but CUDA is not available. Disabling')
+Evaluating on DE_WIKI_EVAL: 10it [00:13,  1.32s/it]
+*****************************
+Evaluating on DE_WIKI_EVAL: 10it [00:13,  1.08s/it]
+
+Dataset name: DE_WIKI_EVAL
+
+****************
+************
+f1: 0.4024
+accuracy: 0.4000
+gold_recall: 1.0000
+p: 0.4048
+r: 0.4000
+num_gold_spans: 85
+************
+
+*****************************
+
+
+23:47:20 - refined.evaluation.evaluation - INFO - Printing ED errors
+INFO:refined.evaluation.evaluation:Printing ED errors
+[{'doc_title': 'Peter Bence\n\nPeter B',
+  'fn_errors': [('5. September', 46, 'Q2854'),
+                ('1991', 59, 'Q2062'),
+                ('ungarischer', 73, 'Q28'),
+                ('Pianist', 85, 'Q486748'),
+                ('Komponist', 94, 'Q36834')],
+  'fp_errors': [('5. September', 46, 'Q16963410'),
+                ('1991', 59, 'Q910856'),
+                ('ungarischer', 73, 'Q28513'),
+                ('Pianist', 85, 'Q150804'),
+                ('Komponist', 94, 'Q1268')]},
+ {'doc_title': 'Svetlana Makarovič\n\n',
+  'fn_errors': [('1. Januar', 42, 'Q2150'),
+                ('slowenische', 78, 'Q215'),
+                ('Dichter', 90, 'Q1293108'),
+                ('Schriftsteller', 101, 'Q36180'),
+                ('Schauspieler', 119, 'Q33999')],
+  'fp_errors': [('1. Januar', 42, 'Q1964220'),
+                ('slowenische', 78, 'Q728135'),
+                ('Dichter', 90, 'Q85469'),
+                ('Schriftsteller', 101, 'Q33977'),
+                ('Schauspieler', 119, 'Q16473')]},
+ {'doc_title': 'Extraliga (Slowakei,',
+  'fn_errors': [('Extraliga 2000/01', 408, 'Q21050421')],
+  'fp_errors': [('Extraliga 2000/01', 408, 'Q840755')]},
+ {'doc_title': 'Plexus deferentialis',
+  'fn_errors': [('lat.', 82, 'Q397')],
+  'fp_errors': [('lat.', 82, 'Q211')]},
+ {'doc_title': 'Fütterung\n\nFütterung', 'fn_errors': [], 'fp_errors': []}]
+23:47:29 - __main__ - INFO - Using EL performance for checkpoint metric
+INFO:__main__:Using EL performance for checkpoint metric
+23:47:33 - __main__ - INFO - Obtained best F1 so far of 0.135 (previous best 0.127)
+INFO:__main__:Obtained best F1 so far of 0.135 (previous best 0.127)
