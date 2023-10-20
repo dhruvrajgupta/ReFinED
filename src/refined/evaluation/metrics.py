@@ -36,11 +36,13 @@ class Metrics:
         )
 
     def get_summary(self):
+        import wandb
         p = self.get_precision()
         r = self.get_recall()
         f1 = self.get_f1()
         accuracy = self.get_accuracy()
         gold_recall = self.get_gold_recall()
+        wandb.log({"precision": p, "recall": r, "f1": f1, "accuracy": accuracy, "gold_recall": gold_recall})
         result = f"\n****************\n" \
                  f"************\n" \
                  f"f1: {f1:.4f}\naccuracy: {accuracy:.4f}\ngold_recall: {gold_recall:.4f}\np: {p:.4f}\nr: " \
@@ -48,6 +50,7 @@ class Metrics:
                  f"************\n"
         if self.el:
             # MD results only make sense for when EL mode is enabled
+            wandb.log({"MD/f1": self.get_f1_md(), "MD/precision": self.get_precision_md(), "MD/recall":self.get_recall_md()})
             result += f"*******MD*****\n" \
                       f"MD_f1: {self.get_f1_md():.4f}, (p: {self.get_precision_md():.4f}," \
                       f" r: {self.get_recall_md():.4f})" \
