@@ -156,7 +156,9 @@ def load_pem(pem_file: str, is_test: bool = False, max_cands: Optional[int] = No
             f = io.StringIO(f.read())
         for line in tqdm(f, total=18e6, desc="Loading PEM"):
             line = ujson.loads(line)
-            pem[line["surface_form"]] = line["qcode_probs"]
+            # TODO: fix lmdb make consistent
+            # pem[line["surface_form"]] = line["qcode_probs"]
+            pem[line["surface_form"]] = list(line["qcode_probs"].items())
             if max_cands:
                 pem[line["surface_form"]] = list(pem[line["surface_form"]].items())[:max_cands]
                 # pem[line["surface_form"]] = line["qcode_probs"][:max_cands]
