@@ -46,10 +46,13 @@ class FineTuningArgs(TrainingArgs):
 
     # This can be either 'wikipedia' or 'wikidata'. It is the entity set that model is considering when performing
     # entity linking.
-    entity_set: str = 'wikidata'
+    entity_set: str = 'wikipedia'
 
     # set to high value because it evaluates after each epoch and each epoch is often short for fine-tuning
     checkpoint_every_n_steps: int = 1000000
+
+    ds_percent: str = field(default_factory=str)
+    language: str = field(default_factory=str)
 
     def add_command_line_args(self, args) -> None:
         for arg in vars(args):
@@ -204,6 +207,23 @@ def parse_fine_tuning_args() -> FineTuningArgs:
         default=fine_tuning_args.checkpoint_every_n_steps,
         type=int,
         help="""checkpoint_every_n_steps.""",
+    )
+
+    ## LANG GENERIC
+    parser.add_argument(
+        "--ds_percent",
+        default=fine_tuning_args.ds_percent,
+        type=str,
+        required=True,
+        help="Choose percent data ['10p', '20p'...'100p'].",
+    )
+
+    parser.add_argument(
+        "--language",
+        default=fine_tuning_args.language,
+        type=str,
+        required=True,
+        help="Choose language ['en', 'de'...''].",
     )
 
     args = parser.parse_args()
