@@ -46,7 +46,7 @@ class FineTuningArgs(TrainingArgs):
 
     # This can be either 'wikipedia' or 'wikidata'. It is the entity set that model is considering when performing
     # entity linking.
-    entity_set: str = 'wikipedia'
+    entity_set: str = 'wikidata'
 
     # set to high value because it evaluates after each epoch and each epoch is often short for fine-tuning
     checkpoint_every_n_steps: int = 1000000
