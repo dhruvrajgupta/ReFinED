@@ -1,3 +1,8 @@
+Places to chang for fine tuning
+ - refiend_model 
+ - src/refined/resource_management/data_lookups.py 
+
+
 wiki_to_qcode - comes from enwiki.json
 filter_not_in_kb - if the mention is not in WD or WP filter out the mention then not included for fine-tuning (
                     skip the mention in fine tuning), if the param is set to false the set Q0
