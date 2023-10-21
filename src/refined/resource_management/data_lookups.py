@@ -36,7 +36,7 @@ class LookupsInferenceOnly:
         # shape = (num_ents, max_num_classes)
         if lang == "de":
             file_path = resource_to_file_path["qcode_idx_to_class_idx"].split("/")
-            file_path[-1] = "qcode_to_class_tns_10241288-74.np"
+            file_path[-1] = "qcode_to_class_tns_2199887-73.np"
             resource_to_file_path["qcode_idx_to_class_idx"] = "/".join(file_path)
         self.qcode_idx_to_class_idx = np.memmap(
             resource_to_file_path["qcode_idx_to_class_idx"],
