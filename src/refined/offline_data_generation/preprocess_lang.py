@@ -25,7 +25,10 @@ LANG = "de_"
 OUTPUT_PATH = f'data'
 
 LOG = get_logger(__name__)
-keep_all_entities = True
+
+# keep_all_entities=True means keep Wikidata entities even if they do not have a Wikipedia page
+# keep_all_entities=False means only keep Wikidata entities that have a Wikipedia page
+keep_all_entities = False
 
 os.makedirs(OUTPUT_PATH, exist_ok=True)
 
