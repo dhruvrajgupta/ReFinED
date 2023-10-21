@@ -67,3 +67,4 @@ src/refined/training/fine_tune/fine_tuned_models
 src/wandb
 src/refined/training/fine_tune/wandb
 logs/
+*.sh
