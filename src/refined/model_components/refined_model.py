@@ -626,8 +626,8 @@ class RefinedModel(nn.Module):
             checkpoint = torch.load(io.BytesIO(f.read()), map_location="cpu")
 
         # Changing head size for fine tuning
-        checkpoint['entity_typing.linear.weight'] = nn.Parameter(torch.randn(1105, 768))
-        checkpoint['entity_typing.linear.bias'] = nn.Parameter(torch.randn(1105))
+        checkpoint['entity_typing.linear.weight'] = nn.Parameter(torch.randn(1076, 768))
+        checkpoint['entity_typing.linear.bias'] = nn.Parameter(torch.randn(1076))
 
         for param in checkpoint.keys():
             checkpoint[param].requires_grad = False
@@ -642,8 +642,8 @@ class RefinedModel(nn.Module):
             # should be [1, 1372]
             # pme + pem
             ed_params[:, -9] += ed_params[:, -7]
-            # should be [1, 1108] - de
-            ed_params = ed_params[:, :-264]
+            # should be [1, 1079] - de (1372 - 1076+3)
+            ed_params = ed_params[:, :-293]
             mask = torch.ones_like(ed_params, dtype=torch.bool)
             # remove additional features weights
             mask[:, -5:] = False
