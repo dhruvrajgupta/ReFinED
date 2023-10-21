@@ -309,12 +309,21 @@ def get_datasets_obj(preprocessor: Preprocessor,
 
 def evaluate(evaluation_dataset_name_to_docs: Dict[str, Iterable[Doc]],
              refined: Refined,
+             step_num: int,
+             epoch_num: int,
+             checkpoint_num: int,
              ed_threshold: float = 0.15,
              el: bool = True,
              ed: bool = True,
              print_errors: bool = True,
              return_special_spans: bool = True) -> Dict[str, Metrics]:
     dataset_name_to_metrics = dict()
+    checkpoint_msg = "\n\nAt Checkpoint: \n"
+    checkpoint_msg += "==============================\n"
+    checkpoint_msg += f"STEP: {step_num}\n"
+    checkpoint_msg += f"EPOCH: {epoch_num}\n"
+    checkpoint_msg += f"CHECKPOINT: {checkpoint_num}\n"
+    LOG.info("\n"+("-"*100)+"\n"+checkpoint_msg)
     if el:
         LOG.info("Running entity linking evaluation")
         el_results = evaluate_on_datasets(
@@ -347,5 +356,7 @@ def evaluate(evaluation_dataset_name_to_docs: Dict[str, Iterable[Doc]],
             if print_errors:
                 LOG.info("Printing ED errors")
                 pprint(metrics.example_errors[:5])
+    
+    LOG.info("\n"+("-"*100)+"\n\n")
 
     return dataset_name_to_metrics
