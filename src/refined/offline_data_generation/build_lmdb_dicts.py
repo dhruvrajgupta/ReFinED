@@ -45,6 +45,7 @@ def build_lmdb_dicts(preprocess_all_data_dir: str, keep_all_entities: bool, lang
 
     # data files
     # Set max_cands to 30 to save space 
+    #### Change the load_pem to return tuples instead of dict
     pem = load_pem(pem_file=os.path.join(f"{preprocess_all_data_dir}/{lang}", "wiki_pem.json"), max_cands=None)
     LmdbImmutableDict.from_dict(pem, output_file_path=data_files["wiki_pem"])
     del pem
