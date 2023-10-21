@@ -28,13 +28,35 @@ def main():
 
     fine_tuning_args = parse_fine_tuning_args()
     
-    fine_tuning_args.checkpoint_every_n_steps = 10000
+    # Checkpoint size same as that of eval set
+    fine_tuning_args.checkpoint_every_n_steps = 10
+    fine_tuning_args.checkpoint_num = 0
 
     # Check language present
     if fine_tuning_args.language not in languages:
         LOG.error(f"Language {fine_tuning_args.language} not available")
         return
     
+    # Train DS
+    train_ds = {
+        "debug": f"{fine_tuning_args.language}_wikipedia_links_aligned_train_100_sample.json",
+        "10p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_10p.json"
+    }
+
+    if fine_tuning_args.ds_percent not in train_ds.keys():
+        LOG.error(\
+            f"Training dataset '{fine_tuning_args.language}_wikipedia_links_aligned_train_{fine_tuning_args.ds_percent}' "\
+                "not found.")
+        return
+    
+    # DIRS
+    # dir_path=f"refined/offline_data_generation/data/organised_data_dir_{fine_tuning_args.language}"
+
+    dir_path = f"../../offline_data_generation/data/organised_data_dir_{fine_tuning_args.language}"
+    train_path = f"{dir_path}/datasets/{train_ds[fine_tuning_args.ds_percent]}"
+    eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_20.json"
+    # eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_1e4.json"
+
     
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
     LOG.info("Fine-tuning end-to-end EL" if fine_tuning_args.el else "Fine-tuning ED only.")
@@ -49,21 +71,22 @@ def main():
         # Track hyperparameters and run metadata
         config=fine_tuning_args
     )
-    dir = "../../offline_data_generation/data/organised_data_dir"
-    # train_path = f"{dir}/datasets/wikipedia_links_aligned_spans_dev_8.json"
-    # eval_path = f"{dir}/datasets/wikipedia_links_aligned_spans_eval_2.json"
 
-    train_path = f"{dir}/datasets/wikipedia_links_aligned_train.json"
-    eval_path = f"{dir}/datasets/wikipedia_links_aligned_eval.json"
+    wandb.define_metric("checkpoint_num")
+    wandb.define_metric("epoch")
+    wandb.define_metric("MD/*", step_metric="checkpoint_num")
+    wandb.define_metric("EVAL/*", step_metric="checkpoint_num")
+    wandb.define_metric("LR/*", step_metric="epoch")
+
     refined = Refined.from_pretrained(model_name="wikipedia_model",
                                     #   data_dir="refined/offline_data_generation/data/organised_data_dir",
-                                      data_dir=dir,
+                                      data_dir=dir_path,
                                       entity_set=fine_tuning_args.entity_set,
                                       use_precomputed_descriptions=fine_tuning_args.use_precomputed_descriptions,
                                       device=fine_tuning_args.device, 
                                       debug=True,
                                       download_files=False,
-                                      lang="de")
+                                      lang=fine_tuning_args.language)
 
     datasets = get_datasets_obj(preprocessor=refined.preprocessor)
 
@@ -115,13 +138,21 @@ def main():
 def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
                            evaluation_dataset_name_to_docs: Dict[str, Iterable[Doc]],
                            fine_tuning_args: FineTuningArgs):
+
+    total_ds_length = 100000
+
+    ds_length = {
+        "debug": 100,
+        "10p" : int(total_ds_length * 0.10)
+    }
+
     LOG.info("Fine-tuning end-to-end EL" if fine_tuning_args.el else "Fine-tuning ED only.")
     train_docs = train_docs
     training_dataset = DocIterDataset(
         docs=train_docs,
         preprocessor=refined.preprocessor,
         # approximate_length=8
-        approximate_length=2025106
+        approximate_length=ds_length[fine_tuning_args.ds_percent]
     )
     training_dataloader = DataLoader(
         dataset=training_dataset, batch_size=fine_tuning_args.batch_size, num_workers=1,
@@ -175,6 +206,7 @@ def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, trai
         optimizer.zero_grad()
         model.train()
         LOG.info(f"Starting epoch number {epoch_num}")
+        wandb.log({"epoch": epoch_num})
         for param_group in optimizer.param_groups:
             LOG.info(f"lr: {param_group['lr']}")
         wandb.log({
@@ -197,10 +229,10 @@ def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, trai
 
             loss = loss.mean()
             total_loss += loss.item()
-            wandb.log({"Loss": loss})
 
-            if step % 100 == 99:
+            if step % 100 == 99 or step == 0:
                 LOG.info(f"Loss: {total_loss / step}")
+                wandb.log({"Loss": loss})
 
             scaler.scale(loss).backward()
 
@@ -215,23 +247,32 @@ def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, trai
             if (step + 1) % checkpoint_every_n_steps == 0:
                 best_f1 = run_checkpoint_eval_and_save(best_f1, evaluation_dataset_name_to_docs, fine_tuning_args,
                                                        refined, optimizer=optimizer, scaler=scaler,
-                                                       scheduler=scheduler)
+                                                       scheduler=scheduler, step_num=step+1, epoch_num=epoch_num)
 
         best_f1 = run_checkpoint_eval_and_save(best_f1, evaluation_dataset_name_to_docs, fine_tuning_args,
                                                refined, optimizer=optimizer, scaler=scaler,
-                                               scheduler=scheduler)
+                                               scheduler=scheduler, step_num=step+1, epoch_num=epoch_num)
 
 
 def run_checkpoint_eval_and_save(best_f1: float, evaluation_dataset_name_to_docs: Dict[str, Iterable[Doc]],
                                  fine_tuning_args: TrainingArgs, refined: Refined, optimizer: AdamW,
                                  scaler: GradScaler,
-                                 scheduler):
+                                 scheduler, 
+                                 # Used for logging
+                                 step_num, epoch_num):
+    fine_tuning_args.checkpoint_num += 1
+    checkpoint_num = fine_tuning_args.checkpoint_num
+    wandb.log({"checkpoint_num": checkpoint_num})
+
     torch.cuda.empty_cache()
     evaluation_metrics = evaluate(refined=refined,
                                   evaluation_dataset_name_to_docs=evaluation_dataset_name_to_docs,
                                   el=fine_tuning_args.el,  # only evaluate EL when training EL
                                   ed=True,  # always evaluate standalone ED
-                                  ed_threshold=fine_tuning_args.ed_threshold)
+                                  ed_threshold=fine_tuning_args.ed_threshold,
+                                  step_num=step_num,
+                                  epoch_num=epoch_num,
+                                  checkpoint_num=checkpoint_num)
     if fine_tuning_args.checkpoint_metric == 'el':
         LOG.info("Using EL performance for checkpoint metric")
         average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if metrics.el])
@@ -244,6 +285,7 @@ def run_checkpoint_eval_and_save(best_f1: float, evaluation_dataset_name_to_docs
     if average_f1 > best_f1:
         LOG.info(f"Obtained best F1 so far of {average_f1:.3f} (previous best {best_f1:.3f})")
         best_f1 = average_f1
+        wandb.run.summary["eval_best_f1"] = f"{average_f1:.3f}"
         model_output_dir = os.path.join(fine_tuning_args.output_dir, fine_tuning_args.experiment_name)
         if os.path.exists(model_output_dir):
             shutil.rmtree(model_output_dir)
