@@ -29,7 +29,7 @@ def main():
     fine_tuning_args = parse_fine_tuning_args()
     
     # Checkpoint size same as that of eval set
-    fine_tuning_args.checkpoint_every_n_steps = 10
+    fine_tuning_args.checkpoint_every_n_steps = 10000
     fine_tuning_args.checkpoint_num = 0
 
     # Check language present
@@ -40,7 +40,16 @@ def main():
     # Train DS
     train_ds = {
         "debug": f"{fine_tuning_args.language}_wikipedia_links_aligned_train_100_sample.json",
-        "10p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_10p.json"
+        "10p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_10p.json",
+        "20p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_20p.json",
+        "30p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_30p.json",
+        "40p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_40p.json",
+        "50p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_50p.json",
+        "60p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_60p.json",
+        "70p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_70p.json",
+        "80p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_80p.json",
+        "90p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_90p.json",
+        "100p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_100p.json"
     }
 
     if fine_tuning_args.ds_percent not in train_ds.keys():
@@ -54,8 +63,8 @@ def main():
 
     dir_path = f"../../offline_data_generation/data/organised_data_dir_{fine_tuning_args.language}"
     train_path = f"{dir_path}/datasets/{train_ds[fine_tuning_args.ds_percent]}"
-    eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_20.json"
-    # eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_1e4.json"
+    # eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_20.json"
+    eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_1e4.json"
 
     
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -145,7 +154,16 @@ def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
 
     ds_length = {
         "debug": 100,
-        "10p" : int(total_ds_length * 0.10)
+        "10p" : int(total_ds_length * 0.10),
+        "20p" : int(total_ds_length * 0.20),
+        "30p" : int(total_ds_length * 0.30),
+        "40p" : int(total_ds_length * 0.40),
+        "50p" : int(total_ds_length * 0.50),
+        "60p" : int(total_ds_length * 0.60),
+        "70p" : int(total_ds_length * 0.70),
+        "80p" : int(total_ds_length * 0.80),
+        "90p" : int(total_ds_length * 0.90),
+        "100p" : int(total_ds_length * 1.00),
     }
 
     LOG.info("Fine-tuning end-to-end EL" if fine_tuning_args.el else "Fine-tuning ED only.")
@@ -306,6 +324,9 @@ def run_checkpoint_eval_and_save(best_f1: float, evaluation_dataset_name_to_docs
         LOG.info("Using EL performance for checkpoint metric")
         average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if metrics.el])
         wandb.log({"EL_average_f1": average_f1})
+        # Also logging for average ED_f1
+        ed_average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if not metrics.el])
+        wandb.log({"ED_average_f1": ed_average_f1})
     elif fine_tuning_args.checkpoint_metric == 'ed':
         LOG.info("Using ED performance for checkpoint metric")
         average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if not metrics.el])
