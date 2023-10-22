@@ -74,8 +74,10 @@ def main():
 
     wandb.define_metric("checkpoint_num")
     wandb.define_metric("epoch")
-    wandb.define_metric("MD/*", step_metric="checkpoint_num")
-    wandb.define_metric("EVAL/*", step_metric="checkpoint_num")
+    wandb.define_metric("EL/*", step_metric="checkpoint_num")
+    wandb.define_metric("ED/*", step_metric="checkpoint_num")
+    wandb.define_metric("EL_average_f1", step_metric="checkpoint_num")
+    wandb.define_metric("ED_average_f1", step_metric="checkpoint_num")
     wandb.define_metric("LR/*", step_metric="epoch")
 
     refined = Refined.from_pretrained(model_name="wikipedia_model",
@@ -230,9 +232,9 @@ def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, trai
             loss = loss.mean()
             total_loss += loss.item()
 
-            if step % 100 == 99 or step == 0:
+            if step % 100 == 99 or step == 1:
                 LOG.info(f"Loss: {total_loss / step}")
-                wandb.log({"Loss": loss})
+                wandb.log({"Loss": (total_loss / step)})
 
             scaler.scale(loss).backward()
 
@@ -273,12 +275,41 @@ def run_checkpoint_eval_and_save(best_f1: float, evaluation_dataset_name_to_docs
                                   step_num=step_num,
                                   epoch_num=epoch_num,
                                   checkpoint_num=checkpoint_num)
+    
+    for metrics in evaluation_metrics.values():
+        if metrics.el:
+            el_metrics = metrics
+            wandb.log({
+                "EL/precision": el_metrics.get_precision(), 
+                "EL/recall": el_metrics.get_recall(), 
+                "EL/f1": el_metrics.get_f1(), 
+                "EL/accuracy": el_metrics.get_accuracy(), 
+                "EL/gold_recall": el_metrics.get_gold_recall(),
+            })
+            # MD results only make sense for when EL mode is enabled
+            wandb.log({
+                "EL/MD_f1": el_metrics.get_f1_md(), 
+                "EL/MD_precision": el_metrics.get_precision_md(), 
+                "EL/MD_recall":el_metrics.get_recall_md()
+            })
+        else:
+            ed_metrics = metrics
+            wandb.log({
+                "ED/precision": ed_metrics.get_precision(), 
+                "ED/recall": ed_metrics.get_recall(), 
+                "ED/f1": ed_metrics.get_f1(), 
+                "ED/accuracy": ed_metrics.get_accuracy(), 
+                "ED/gold_recall": ed_metrics.get_gold_recall(),
+            })
+    
     if fine_tuning_args.checkpoint_metric == 'el':
         LOG.info("Using EL performance for checkpoint metric")
         average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if metrics.el])
+        wandb.log({"EL_average_f1": average_f1})
     elif fine_tuning_args.checkpoint_metric == 'ed':
         LOG.info("Using ED performance for checkpoint metric")
         average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if not metrics.el])
+        wandb.log({"ED_average_f1": average_f1})
     else:
         raise Exception("--checkpoint_metric (`checkpoint_metric`) needs to be set to el or ed,")
 
