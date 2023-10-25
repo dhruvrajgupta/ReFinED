@@ -31,6 +31,46 @@ def main():
 
     training_args = parse_training_args()
 
+    languages = ["en", "de"]
+
+    # Check language present
+    if training_args.language not in languages:
+        LOG.error(f"Language {training_args.language} not available")
+        return
+
+    # Train DS
+    train_ds = {
+        "debug": f"{training_args.language}_wikipedia_links_aligned_train_100_sample.json",
+        "10p" : f"{training_args.language}_wikipedia_links_aligned_train_10p.json",
+        "20p" : f"{training_args.language}_wikipedia_links_aligned_train_20p.json",
+        "30p" : f"{training_args.language}_wikipedia_links_aligned_train_30p.json",
+        "40p" : f"{training_args.language}_wikipedia_links_aligned_train_40p.json",
+        "50p" : f"{training_args.language}_wikipedia_links_aligned_train_50p.json",
+        "60p" : f"{training_args.language}_wikipedia_links_aligned_train_60p.json",
+        "70p" : f"{training_args.language}_wikipedia_links_aligned_train_70p.json",
+        "80p" : f"{training_args.language}_wikipedia_links_aligned_train_80p.json",
+        "90p" : f"{training_args.language}_wikipedia_links_aligned_train_90p.json",
+        "100p" : f"{training_args.language}_wikipedia_links_aligned_train_100p.json"
+    }
+
+    if training_args.ds_percent not in train_ds.keys():
+        LOG.error(\
+            f"Training dataset '{training_args.language}_wikipedia_links_aligned_train_{training_args.ds_percent}' "\
+                "not found.")
+        return
+
+    # DIRS
+    dir_path=f"refined/offline_data_generation/data/organised_data_dir_{training_args.language}"
+
+    # dir_path = f"../../offline_data_generation/data/organised_data_dir_{training_args.language}"
+    train_path = f"{dir_path}/datasets/{train_ds[training_args.ds_percent]}"
+    eval_path = f"{dir_path}/datasets/{training_args.language}_wikipedia_links_aligned_eval_20.json"
+    # eval_path = f"{dir_path}/datasets/{training_args.language}_wikipedia_links_aligned_eval_1e4.json"
+
+    training_args.download_files = False
+    training_args.data_dir = dir_path
+    training_args.debug = True
+
     resource_manager = ResourceManager(S3Manager(),
                                        data_dir=training_args.data_dir,
                                        entity_set=training_args.entity_set,
@@ -43,22 +83,27 @@ def main():
         resource_manager.download_additional_files_if_needed()
         resource_manager.download_training_files_if_needed()
 
+    ner_tag_to_ix =  {"O": 0, "B-MENTION": 1, "I-MENTION": 2}
+
     preprocessor = PreprocessorInferenceOnly(
         data_dir=training_args.data_dir,
         debug=training_args.debug,
         max_candidates=training_args.num_candidates_train,
         transformer_name=training_args.transformer_name,
-        ner_tag_to_ix=NER_TAG_TO_IX,  # for now include default ner_to_tag_ix can make configurable in future
+        ner_tag_to_ix=ner_tag_to_ix,  # for now include default ner_to_tag_ix can make configurable in future
         entity_set=training_args.entity_set,
-        use_precomputed_description_embeddings=False
+        use_precomputed_description_embeddings=False,
+        lang = training_args.language
     )
 
     wikidata_mapper = WikidataMapper(resource_manager=resource_manager)
 
-    wikipedia_dataset_file_path = resource_manager.get_training_data_files()['wikipedia_training_dataset']
+    wikipedia_dataset_file_path = resource_manager.get_training_data_files()['wikipedia_training_dataset'].split("/")
+    wikipedia_dataset_file_path[-1] = train_ds[training_args.ds_percent]
+    wikipedia_dataset_file_path = "/".join(wikipedia_dataset_file_path)
     training_dataset = WikipediaDataset(
         # start=100,
-        start=100,
+        start=0,
         end=100000000,  # large number means every line will be read until the end of the file
         preprocessor=preprocessor,
         resource_manager=resource_manager,
@@ -87,7 +132,7 @@ def main():
         preprocessor=preprocessor,
         resource_manager=resource_manager,
         wikidata_mapper=wikidata_mapper,
-        dataset_path=wikipedia_dataset_file_path,
+        dataset_path=eval_path,
         return_docs=True,  # this means the dataset will return `Doc` objects instead of BatchedElementsTns
         batch_size=1 * training_args.n_gpu,
         num_workers=1,

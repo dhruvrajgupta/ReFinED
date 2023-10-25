@@ -2,7 +2,7 @@ import json
 import os
 import time
 from argparse import ArgumentParser
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 import torch
@@ -52,6 +52,9 @@ class TrainingArgs:
 
     checkpoint_metric: Optional[str] = None  # Needs to be "el" or "ed". By default it will be "el" if el is True
     # and "ed" if el is False.
+
+    ds_percent: str = field(default_factory=str)
+    language: str = field(default_factory=str)
 
     def __post_init__(self):
         if self.checkpoint_metric is None:
@@ -269,6 +272,23 @@ def parse_training_args() -> TrainingArgs:
         By default "ed" will be used.
         When training EL on Wikipedia hyperlinks this should be set to "ed" because "el" evaluation is not reliable
         because Wikipedia hyperlinks are partial EL annotations.""",
+    )
+
+    ## LANG GENERIC
+    parser.add_argument(
+        "--ds_percent",
+        default=training_args.ds_percent,
+        type=str,
+        required=True,
+        help="Choose percent data ['10p', '20p'...'100p'].",
+    )
+
+    parser.add_argument(
+        "--language",
+        default=training_args.language,
+        type=str,
+        required=True,
+        help="Choose language ['en', 'de'...''].",
     )
 
     args = parser.parse_args()

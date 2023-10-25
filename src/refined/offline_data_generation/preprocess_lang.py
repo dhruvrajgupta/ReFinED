@@ -15,11 +15,17 @@ from refined.offline_data_generation.class_selection import select_classes
 from refined.offline_data_generation.run_span_detection import run, add_spans_to_existing_datasets
 from refined.offline_data_generation.build_lmdb_dicts import build_lmdb_dicts
 from refined.offline_data_generation.generate_qcode_to_type_indices import create_tensors
+from refined.resource_management.resource_manager import ResourceManager
+import sys
+from refined.resource_management.aws import S3Manager
+import copy
+from refined.model_components.config import NER_TAG_TO_IX
 
 from typing import Set, Dict, List
 from refined.offline_data_generation.dataclasses_for_preprocessing import AdditionalEntity
 from tqdm.auto import tqdm
 import json
+from refined.training.train.train_md_standalone import train_md_model
 
 LANG = "de_"
 OUTPUT_PATH = f'data'
@@ -188,6 +194,32 @@ def main():
     LOG.info('Step 10) Creating class labels lookup')
     if not os.path.exists(os.path.join(lang_dir, 'class_to_label.json')):
         build_class_labels(lang_dir)
+
+    LOG.info('(Step 11) Training MD model for ontonotes numeric/date spans (date, cardinal, percent etc.)')
+    # check if model exists
+    model_dir_prefix = 'onto-onto-article-onto-lower-epoch-4'
+    if len([x[0] for x in list(os.walk(OUTPUT_PATH)) if model_dir_prefix in x[0]]) == 0:
+        logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+        os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+        resource_manager = ResourceManager(S3Manager(),
+                                           data_dir=OUTPUT_PATH,
+                                           entity_set=None,
+                                           model_name=None
+                                           )
+        resource_manager.download_datasets_if_needed()
+        # NER_TAG_TO_NUM_MD = copy.deepcopy(NER_TAG_TO_IX)
+        # del NER_TAG_TO_NUM_MD["B-MENTION"]
+        # del NER_TAG_TO_NUM_MD["I-MENTION"]
+        # NER_TAG_TO_NUM_MD = {"O": 0, "B-MENTION": 1, "I-MENTION": 2}
+        train_md_model(resources_dir=OUTPUT_PATH, datasets=['onto', 'onto-article', 'onto-lower'],
+                    #    device='cuda:0', 
+                       device="cpu",
+                       max_seq=500, batch_size=16, bio_only=True, max_articles=None,
+                    #    ner_tag_to_num=NER_TAG_TO_NUM_MD, 
+                       num_epochs=10, filter_types=set())
+    else:
+        LOG.info('Model already trained so skipping')
+    return
 
     # model_dir_prefix = 'wikipedia_model'
     # # Running over a small sample Wikipedia de
