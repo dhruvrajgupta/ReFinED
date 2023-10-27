@@ -191,3 +191,38 @@ class DocIterDataset(IterableDataset):
 
     def __getitem__(self, index):
         NotImplementedError()
+
+
+class ShuffleDataset(torch.utils.data.IterableDataset):
+  def __init__(self, dataset, buffer_size, dataloader_length):
+    super().__init__()
+    self.dataset = dataset
+    self.buffer_size = buffer_size
+    self.dataloader_length = dataloader_length
+  
+  def __len__(self) -> int:
+    return self.dataloader_length
+
+
+  def __iter__(self):
+    shufbuf = []
+    try:
+      dataset_iter = iter(self.dataset)
+      for i in range(self.buffer_size):
+        shufbuf.append(next(dataset_iter))
+    except:
+      self.buffer_size = len(shufbuf)
+
+    try:
+      while True:
+        try:
+          item = next(dataset_iter)
+          evict_idx = random.randint(0, self.buffer_size - 1)
+          yield shufbuf[evict_idx]
+          shufbuf[evict_idx] = item
+        except StopIteration:
+          break
+      while len(shufbuf) > 0:
+        yield shufbuf.pop()
+    except GeneratorExit:
+      pass
