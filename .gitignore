@@ -72,3 +72,4 @@ copy_data/
 *.out
 *.err
 **/wandb/
+*.sb
