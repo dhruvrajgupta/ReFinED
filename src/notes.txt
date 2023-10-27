@@ -1,3 +1,11 @@
+  2. Shuffle
+  3. Plot the training and validation metrics
+  4. Early stopping
+          batch same loss to zero
+          constant - from LR
+  1. fixed LR
+
+
 Places to chang for fine tuning
  - refiend_model 
  - src/refined/resource_management/data_lookups.py 
