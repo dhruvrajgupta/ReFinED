@@ -68,3 +68,7 @@ src/wandb
 src/refined/training/fine_tune/wandb
 logs/
 *.sh
+copy_data/
+*.out
+*.err
+**/wandb/
