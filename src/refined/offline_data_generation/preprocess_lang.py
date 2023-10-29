@@ -195,31 +195,71 @@ def main():
     if not os.path.exists(os.path.join(lang_dir, 'class_to_label.json')):
         build_class_labels(lang_dir)
 
-    LOG.info('(Step 11) Training MD model for ontonotes numeric/date spans (date, cardinal, percent etc.)')
-    # check if model exists
-    model_dir_prefix = 'onto-onto-article-onto-lower-epoch-4'
+    # LOG.info('(Step 11) Training MD model for ontonotes numeric/date spans (date, cardinal, percent etc.)')
+    # # check if model exists
+    # model_dir_prefix = 'onto-onto-article-onto-lower-epoch-4'
+    # if len([x[0] for x in list(os.walk(OUTPUT_PATH)) if model_dir_prefix in x[0]]) == 0:
+    #     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    #     os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+    #     resource_manager = ResourceManager(S3Manager(),
+    #                                        data_dir=OUTPUT_PATH,
+    #                                        entity_set=None,
+    #                                        model_name=None
+    #                                        )
+    #     resource_manager.download_datasets_if_needed()
+    #     # NER_TAG_TO_NUM_MD = copy.deepcopy(NER_TAG_TO_IX)
+    #     # del NER_TAG_TO_NUM_MD["B-MENTION"]
+    #     # del NER_TAG_TO_NUM_MD["I-MENTION"]
+    #     train_md_model(resources_dir=OUTPUT_PATH, datasets=['onto', 'onto-article', 'onto-lower'],
+    #                 #    device='cuda:0',
+    #                    device="cpu",
+    #                     max_seq=500, batch_size=16, bio_only=True, max_articles=None,
+    #                    ner_tag_to_num=None, num_epochs=10, filter_types=set())
+    # else:
+    #     LOG.info('Model already trained so skipping')
+    
+    LOG.info('Step 13) Train MD model on augmented MD datasets')
+    model_dir_prefix = 'onto-onto-article-onto-lower-onto-article-lower-conll-conll-lower-conll-article-conll-article' \
+                       '-lower-webqsp-epoch-9'
     if len([x[0] for x in list(os.walk(OUTPUT_PATH)) if model_dir_prefix in x[0]]) == 0:
-        logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-        os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-        resource_manager = ResourceManager(S3Manager(),
-                                           data_dir=OUTPUT_PATH,
-                                           entity_set=None,
-                                           model_name=None
-                                           )
-        resource_manager.download_datasets_if_needed()
-        # NER_TAG_TO_NUM_MD = copy.deepcopy(NER_TAG_TO_IX)
-        # del NER_TAG_TO_NUM_MD["B-MENTION"]
-        # del NER_TAG_TO_NUM_MD["I-MENTION"]
-        # NER_TAG_TO_NUM_MD = {"O": 0, "B-MENTION": 1, "I-MENTION": 2}
-        train_md_model(resources_dir=OUTPUT_PATH, datasets=['onto', 'onto-article', 'onto-lower'],
-                    #    device='cuda:0', 
-                       device="cpu",
-                       max_seq=500, batch_size=16, bio_only=True, max_articles=None,
-                    #    ner_tag_to_num=NER_TAG_TO_NUM_MD, 
-                       num_epochs=10, filter_types=set())
+        datasets = ['onto', 'onto-article', 'onto-lower', 'onto-article-lower',
+                    'conll', 'conll-lower', 'conll-article',
+                    'conll-article-lower', 'webqsp']
+        train_md_model(resources_dir=OUTPUT_PATH, 
+                       datasets=datasets,
+                       device="cuda:0", 
+                    #    device="cpu",
+                       max_seq=510, batch_size=16, bio_only=False,
+                       ner_tag_to_num=NER_TAG_TO_IX,
+                    #    additional_filenames={'conll': '_plus_dates', 'conll-lower': '_plus_dates',
+                    #                          'conll-article': '_plus_dates', 'conll-article-lower': '_plus_dates'},
+                       use_mention_tag=True,
+                       convert_types={"webqsp": {"DURATION": "TIME", "NUMBER": "CARDINAL"}},
+                       filter_types=set())
     else:
-        LOG.info('Model already trained so skipping')
-    return
+        LOG.info("Found an MD model already trained on augmented MD datasets, so skipping")
+
+
+    run_md = True
+    part = "12e4"
+    file_path_to_run_md = f"{lang_dir}/data_splits/{lang}_wikipedia_links_aligned_{part}.json"
+
+    LOG.info('Step 14) Running MD model over Wikipedia.')
+    # if not os.path.exists(os.path.join(OUTPUT_PATH, 'awikipedia_links_aligned_spans.json')):
+    if run_md:
+        model_dir = [x[0] for x in list(os.walk(OUTPUT_PATH)) if model_dir_prefix in x[0]][0]
+        n_gpu = 1  # can change this to speed it up if more GPUs are available
+        run(aligned_wiki_file=file_path_to_run_md,
+            n_gpu=n_gpu, resources_dir=OUTPUT_PATH, model_dir=model_dir)
+        command = 'cat'
+        for part_num in range(n_gpu):
+            command += os.path.abspath(
+                os.path.join(OUTPUT_PATH, f'wikipedia_links_aligned.json_spans_{part_num}.json'))
+        f_out = open(os.path.abspath(os.path.join(OUTPUT_PATH, 'wikipedia_links_aligned_spans.json')), 'w')
+        process = subprocess.Popen(command.split(), stdout=f_out)
+        output, error = process.communicate()
+        print(error)
+        f_out.close()
 
     # model_dir_prefix = 'wikipedia_model'
     # # Running over a small sample Wikipedia de
