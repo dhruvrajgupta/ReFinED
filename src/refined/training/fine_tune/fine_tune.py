@@ -12,7 +12,7 @@ from tqdm.auto import trange, tqdm
 from transformers import get_linear_schedule_with_warmup
 
 from refined.data_types.doc_types import Doc
-from refined.dataset_reading.entity_linking.document_dataset import DocDataset, DocIterDataset
+from refined.dataset_reading.entity_linking.document_dataset import DocDataset, DocIterDataset, ShuffleDataset
 from refined.evaluation.evaluation import get_datasets_obj, evaluate
 from refined.inference.processor import Refined
 from refined.training.fine_tune.fine_tune_args import FineTuningArgs, parse_fine_tuning_args
@@ -39,22 +39,22 @@ def main():
     
     # Train DS
     train_ds = {
-        "debug": f"{fine_tuning_args.language}_wikipedia_links_aligned_train_100_sample.json",
-        "10p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_10p.json",
-        "20p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_20p.json",
-        "30p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_30p.json",
-        "40p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_40p.json",
-        "50p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_50p.json",
-        "60p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_60p.json",
-        "70p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_70p.json",
-        "80p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_80p.json",
-        "90p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_90p.json",
-        "100p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_train_100p.json"
+        "debug": f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_100_sample.json",
+        "10p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_10p.json",
+        "20p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_20p.json",
+        "30p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_30p.json",
+        "40p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_40p.json",
+        "50p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_50p.json",
+        "60p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_60p.json",
+        "70p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_70p.json",
+        "80p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_80p.json",
+        "90p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_90p.json",
+        "100p" : f"{fine_tuning_args.language}_wikipedia_links_aligned_spans_train_100p.json"
     }
 
     if fine_tuning_args.ds_percent not in train_ds.keys():
         LOG.error(\
-            f"Training dataset '{fine_tuning_args.language}_wikipedia_links_aligned_train_{fine_tuning_args.ds_percent}' "\
+            f"Training dataset '{fine_tuning_args.language}_wikipedia_links_aligned_train_spans_{fine_tuning_args.ds_percent}' "\
                 "not found.")
         return
     
@@ -63,8 +63,10 @@ def main():
 
     dir_path = f"../../offline_data_generation/data/organised_data_dir_{fine_tuning_args.language}"
     train_path = f"{dir_path}/datasets/{train_ds[fine_tuning_args.ds_percent]}"
-    # eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_20.json"
-    eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_eval_1e4.json"
+    if fine_tuning_args.ds_percent == "debug":
+        eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_spans_20_sample.json"
+    else:
+        eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_spans_val_1e4.json"
 
     
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -174,8 +176,9 @@ def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
         # approximate_length=8
         approximate_length=ds_length[fine_tuning_args.ds_percent]
     )
+    # training_dataset = ShuffleDataset(training_dataset, 10)# shuffle buffer size depends on your application
     training_dataloader = DataLoader(
-        dataset=training_dataset, batch_size=fine_tuning_args.batch_size, num_workers=1,
+        dataset=ShuffleDataset(training_dataset, 100, training_dataset.approximate_length), batch_size=fine_tuning_args.batch_size, num_workers=1,
         collate_fn=training_dataset.collate
     )
 
@@ -219,6 +222,18 @@ def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
 def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, training_dataloader: DataLoader,
                           optimizer: AdamW, scheduler, evaluation_dataset_name_to_docs: Dict[str, Iterable[Doc]],
                           checkpoint_every_n_steps: int = 1000000, scaler: GradScaler = GradScaler()):
+    
+    # Check if wandb is initialized
+    # This happens during training
+    if wandb.run is None:
+        run = wandb.init(
+        # Set the project where this run will be logged
+        project="multilingual-refined",
+        # Track hyperparameters and run metadata
+        config=fine_tuning_args
+    )
+
+
     model = refined.model
     best_f1 = 0.0
     for epoch_num in trange(fine_tuning_args.epochs):
@@ -250,7 +265,7 @@ def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, trai
             loss = loss.mean()
             total_loss += loss.item()
 
-            if step % 100 == 99 or step == 1:
+            if step % 100 == 99:
                 LOG.info(f"Loss: {total_loss / step}")
                 wandb.log({"Loss": (total_loss / step)})
 
