@@ -21,9 +21,9 @@ from refined.utilities.general_utils import get_logger
 import wandb
 
 LOG = get_logger(name=__name__)
-wandb.login()
 
 def main():
+    wandb.login()
     languages = ["en", "de"]
 
     fine_tuning_args = parse_fine_tuning_args()
@@ -222,17 +222,6 @@ def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
 def run_fine_tuning_loops(refined: Refined, fine_tuning_args: TrainingArgs, training_dataloader: DataLoader,
                           optimizer: AdamW, scheduler, evaluation_dataset_name_to_docs: Dict[str, Iterable[Doc]],
                           checkpoint_every_n_steps: int = 1000000, scaler: GradScaler = GradScaler()):
-    
-    # Check if wandb is initialized
-    # This happens during training
-    if wandb.run is None:
-        run = wandb.init(
-        # Set the project where this run will be logged
-        project="multilingual-refined",
-        # Track hyperparameters and run metadata
-        config=fine_tuning_args
-    )
-
 
     model = refined.model
     best_f1 = 0.0
