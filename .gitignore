@@ -64,6 +64,8 @@ Thumbs.db
 
 
 src/refined/training/fine_tune/fine_tuned_models
+src/refined/training/train/fine_tuned_models
+src/refined/training/fine_tune/fine_tuned_models_max_epoch_6
 src/wandb
 src/refined/training/fine_tune/wandb
 logs/
