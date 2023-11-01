@@ -34,6 +34,7 @@ class WikipediaDataset(torch.utils.data.IterableDataset):
             resource_manager: ResourceManager,
             wikidata_mapper: WikidataMapper,
             dataset_path: str,
+            file_line_count: int,
             start: int = 0,
             end: Optional[int] = None,
             seed=0,
@@ -78,7 +79,8 @@ class WikipediaDataset(torch.utils.data.IterableDataset):
         self.wikidata_mapper = wikidata_mapper
         self.add_main_entity = add_main_entity
         self.lower_case_prob = lower_case_prob
-        self.file_line_count = 6000000  # hard-coded for now to avoid running wc -l on a 50 GB file
+        self.file_line_count = file_line_count
+        # self.file_line_count = 6000000  # hard-coded for now to avoid running wc -l on a 50 GB file
 
         if end is None:
             end = self.file_line_count
