@@ -194,11 +194,12 @@ class DocIterDataset(IterableDataset):
 
 
 class ShuffleDataset(torch.utils.data.IterableDataset):
-  def __init__(self, dataset, buffer_size, dataloader_length):
+  def __init__(self, dataset, buffer_size, dataloader_length, seed=0):
     super().__init__()
     self.dataset = dataset
     self.buffer_size = buffer_size
     self.dataloader_length = dataloader_length
+    random.seed(seed)
   
   def __len__(self) -> int:
     return self.dataloader_length
