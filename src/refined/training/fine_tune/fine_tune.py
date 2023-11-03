@@ -80,7 +80,8 @@ def main():
         # Set the project where this run will be logged
         project="multilingual-refined",
         # Track hyperparameters and run metadata
-        config=fine_tuning_args
+        config=fine_tuning_args,
+        resume=True
     )
 
     wandb.define_metric("checkpoint_num")
@@ -335,6 +336,8 @@ def run_checkpoint_eval_and_save(best_f1: float, evaluation_dataset_name_to_docs
         LOG.info("Using ED performance for checkpoint metric")
         average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if not metrics.el])
         wandb.log({"ED_average_f1": average_f1})
+        el_average_f1 = mean([metrics.get_f1() for metrics in evaluation_metrics.values() if metrics.el])
+        wandb.log({"EL_average_f1": el_average_f1})
     else:
         raise Exception("--checkpoint_metric (`checkpoint_metric`) needs to be set to el or ed,")
 
