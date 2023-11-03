@@ -37,7 +37,7 @@ def preprocess_wikipedia(dump_path, save_path, keep_links=True, remove_disambig_
     else:
         os.makedirs(save_path, exist_ok=True)
 
-    cmd = f'python3 {this_file_dir}/wiki_extractor.py {dump_path} -o {save_path} --json -b 50m'
+    cmd = f'python3 {this_file_dir}/wiki_extractor.py {dump_path} -o {save_path} --json -b 50m -q'
 
     if keep_links:
         cmd += ' --links'
