@@ -53,6 +53,8 @@ class FineTuningArgs(TrainingArgs):
 
     ds_percent: str = field(default_factory=str)
     language: str = field(default_factory=str)
+    resume: bool = False
+    start_epoch: int = 0
 
     def add_command_line_args(self, args) -> None:
         for arg in vars(args):
@@ -224,6 +226,22 @@ def parse_fine_tuning_args() -> FineTuningArgs:
         type=str,
         required=True,
         help="Choose language ['en', 'de'...''].",
+    )
+
+    parser.add_argument(
+        "--resume",
+        default=fine_tuning_args.resume,
+        type=str2bool,
+        required=False,
+        help="Choose to resume.",
+    )
+
+    parser.add_argument(
+        "--start_epoch",
+        default=fine_tuning_args.start_epoch,
+        type=int,
+        required=False,
+        help="Choose start epoch"
     )
 
     args = parser.parse_args()
