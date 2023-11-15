@@ -120,7 +120,7 @@ def ent_good_classes(entity: Dict[str, Any], pem, occupations, sports, country, 
 def select_classes(resources_dir: str, add_class_every_n_pages: int = 5000, number_of_classes: int = 1400,
                    is_test: bool = False, lang: str = 'en'):
     lang_dir = f'{resources_dir}/{lang}'
-    common_dir = f'{resources_dir}/common'
+    common_dir = f'{resources_dir}/{lang}/common'
     pem = load_pem(os.path.join(lang_dir, 'wiki_pem.json'), is_test=is_test)
     subclasses, _ = load_subclasses(os.path.join(common_dir, 'subclass_p279.json'), is_test=is_test)
     instance_of = load_instance_of(os.path.join(common_dir, 'instance_of_p31.json'), is_test=is_test)

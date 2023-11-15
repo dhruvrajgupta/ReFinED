@@ -27,7 +27,6 @@ from tqdm.auto import tqdm
 import json
 from refined.training.train.train_md_standalone import train_md_model
 
-LANG = "de_"
 OUTPUT_PATH = f'data'
 
 LOG = get_logger(__name__)
@@ -37,14 +36,6 @@ LOG = get_logger(__name__)
 keep_all_entities = False
 
 os.makedirs(OUTPUT_PATH, exist_ok=True)
-
-WIKIPEDIA_PAGE_IDS_FILE = LANG + 'wikipedia_page_ids.sql.gz'
-WIKIPEDIA_REDIRECTS_FILE = LANG + 'wikipedia_redirects.sql.gz'
-WIKIPEDIA_ARTICLES_FILE = LANG + 'wikipedia_articles.xml.bz2'
-WIKIDATA_DUMP_FILE = 'wikidata.json.bz2'
-
-AIDA_MEANS_URL = 'http://resources.mpi-inf.mpg.de/yago-naga/aida/download/aida_means.tsv.bz2'
-AIDA_MEANS_FILE = 'aida_means.tsv.bz2'
 
 
 def build_entity_index(pem_filename: str, output_path: str):
@@ -90,8 +81,21 @@ def main():
                         default="n",
                         help="y or n", )
     parser.add_argument('--additional_entities_file', type=str)
+    parser.add_argument('--language', type=str)
     cli_args = parser.parse_args()
+    # cli_args.debug='y'
     debug = cli_args.debug.lower() == 'y'
+    language = cli_args.language
+
+    LANG = f"{language}_"
+
+    WIKIPEDIA_PAGE_IDS_FILE = LANG + 'wikipedia_page_ids.sql.gz'
+    WIKIPEDIA_REDIRECTS_FILE = LANG + 'wikipedia_redirects.sql.gz'
+    WIKIPEDIA_ARTICLES_FILE = LANG + 'wikipedia_articles.xml.bz2'
+    WIKIDATA_DUMP_FILE = 'wikidata.json.bz2'
+
+    AIDA_MEANS_URL = 'http://resources.mpi-inf.mpg.de/yago-naga/aida/download/aida_means.tsv.bz2'
+    AIDA_MEANS_FILE = 'aida_means.tsv.bz2'
 
     # Stripping of '_' from LANG
     lang = LANG[:-1]
@@ -105,7 +109,7 @@ def main():
     if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/en')):
         build_wikidata_lookups(args_override=args, lang='en')
 
-    LOG.info('Part 2. Building lookups and sets for Language - de')
+    LOG.info(f'Part 2. Building lookups and sets for Language - {lang}')
     if not os.path.exists(os.path.join(f'{OUTPUT_PATH}/{lang}')):
         build_wikidata_lookups(args_override=args, lang=lang)
 
@@ -145,7 +149,7 @@ def main():
     # add extra human and fictional humans to human qcodes
     # TODO add fictional human to original human qcodes as well
     if additional_entities is not None and len(additional_entities) > 0:
-        instance_of = load_instance_of(os.path.join(f'{OUTPUT_PATH}/common', 'instance_of_p31.json'), is_test=debug)
+        instance_of = load_instance_of(os.path.join(f'{OUTPUT_PATH}/{lang}/common', 'instance_of_p31.json'), is_test=debug)
         human_qcodes: Set[str] = set()
         for qcode, classes in tqdm(instance_of.items(), desc='Adding human qcodes from instance_of'):
             if 'Q5' in classes or 'Q15632617' in classes:
@@ -155,7 +159,7 @@ def main():
             if 'Q5' in additional_entity.entity_types or 'Q15632617' in additional_entity.entity_types:
                 human_qcodes.add(additional_entity.entity_id)
 
-        with open(os.path.join(f'{OUTPUT_PATH}/common', 'human_qcodes.json'), 'w') as f_out:
+        with open(os.path.join(f'{OUTPUT_PATH}/{lang}/common', 'human_qcodes.json'), 'w') as f_out:
             f_out.write('\n'.join(human_qcodes))
         del instance_of
 
@@ -240,7 +244,7 @@ def main():
         LOG.info("Found an MD model already trained on augmented MD datasets, so skipping")
 
 
-    run_md = True
+    run_md = False
     part = "12e4"
     file_path_to_run_md = f"{lang_dir}/data_splits/{lang}_wikipedia_links_aligned_{part}.json"
 

@@ -18,9 +18,9 @@ def build_lmdb_dicts(preprocess_all_data_dir: str, keep_all_entities: bool, lang
     # nest the output in the preprocess_all_data_dir data_dir
     # wikipedia or wikidata
 
-    common_dir = "common"
+    common_dir = f"{lang}/common"
 
-    new_data_dir = os.path.join(preprocess_all_data_dir, "organised_data_dir")
+    new_data_dir = os.path.join(preprocess_all_data_dir, f"organised_data_dir_{lang}")
     os.makedirs(new_data_dir, exist_ok=True)
 
     entity_set = "wikidata" if keep_all_entities else "wikipedia"
@@ -71,8 +71,8 @@ def build_lmdb_dicts(preprocess_all_data_dir: str, keep_all_entities: bool, lang
     LmdbImmutableDict.from_dict(qcode_to_wiki, output_file_path=data_files["qcode_to_wiki"])
 
     # training data files
-    shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{lang}", "wikipedia_links_aligned_spans.json"),
-                training_data_files["wikipedia_training_dataset"])
+    # shutil.copy(os.path.join(f"{preprocess_all_data_dir}/{lang}", "wikipedia_links_aligned_spans.json"),
+    #             training_data_files["wikipedia_training_dataset"])
 
     # additional_data_files
     redirects = load_redirects(os.path.join(f"{preprocess_all_data_dir}/{lang}", "redirects.json"))

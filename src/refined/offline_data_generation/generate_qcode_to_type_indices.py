@@ -22,7 +22,7 @@ EXCLUDE_LIST_AND_DISAMBIGUATION_PAGES = True
 def create_tensors(resources_dir: str, additional_entities: Optional[List[AdditionalEntity]] = None,
                    is_test: bool = False, lang: str = 'en'):
     lang_dir = f'{resources_dir}/{lang}'
-    common_dir = f'{resources_dir}/common'
+    common_dir = f'{resources_dir}/{lang}/common'
     class_to_idx: Dict[str, int] = create_class_to_idx(os.path.join(lang_dir, 'chosen_classes.txt'))
     chosen_classes: Set[str] = set(class_to_idx.keys())
 

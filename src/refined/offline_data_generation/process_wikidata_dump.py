@@ -102,7 +102,7 @@ def build_wikidata_lookups(args_override=None, lang=None):
         os.makedirs(lang_dir)
 
     # Create common directory
-    common_dir = f'{args.output_dir}/common'
+    common_dir = f'{lang_dir}/common'
     if not os.path.exists(common_dir):
         os.makedirs(common_dir)
 
