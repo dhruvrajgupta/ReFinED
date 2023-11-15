@@ -32,7 +32,7 @@ class TrainingArgs:
     num_candidates_train: int = 30
     num_candidates_eval: int = 30
     use_precomputed_descriptions: bool = False
-    output_dir: str = 'fine_tuned_models'
+    output_dir: str = 'trained_models'
     restore_model_path: Optional[str] = None
     # This can be either 'wikipedia' or 'wikidata'. It is the entity set that model is considering when performing
     # entity linking.
@@ -55,6 +55,7 @@ class TrainingArgs:
 
     ds_percent: str = field(default_factory=str)
     language: str = field(default_factory=str)
+    start_epoch: int = 0
 
     def __post_init__(self):
         if self.checkpoint_metric is None:
@@ -289,6 +290,14 @@ def parse_training_args() -> TrainingArgs:
         type=str,
         required=True,
         help="Choose language ['en', 'de'...''].",
+    )
+
+    parser.add_argument(
+        "--start_epoch",
+        default=training_args.start_epoch,
+        type=int,
+        required=False,
+        help="Choose start epoch"
     )
 
     args = parser.parse_args()
