@@ -22,6 +22,10 @@ from refined.training.fine_tune.fine_tune import run_fine_tuning_loops
 from refined.training.train.training_args import parse_training_args
 from refined.utilities.general_utils import get_logger
 import wandb
+import json
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data")
 
 LOG = get_logger(name=__name__)
 
@@ -35,7 +39,7 @@ def main():
     training_args = parse_training_args()
     training_args.checkpoint_num = 0
 
-    languages = ["en", "de"]
+    languages = ["en", "de", "es", "pt", "ru"]
 
     # Check language present
     if training_args.language not in languages:
@@ -71,6 +75,7 @@ def main():
     train_path = f"{dir_path}/datasets/{train_ds[training_args.ds_percent]}"
     if training_args.ds_percent == "debug":
         eval_path = f"{dir_path}/datasets/{training_args.language}_wikipedia_links_aligned_spans_20_sample.json"
+        # eval_path = f"{dir_path}/datasets/{training_args.language}_wikipedia_links_aligned_spans_val_1e4_conf.json"
     else:
         eval_path = f"{dir_path}/datasets/{training_args.language}_wikipedia_links_aligned_spans_val_1e4_conf.json"
     # eval_path = f"{dir_path}/datasets/wikipedia_links_aligned.json_spans_small.json"
@@ -79,7 +84,24 @@ def main():
 
     training_args.download_files = False
     training_args.data_dir = dir_path
-    training_args.debug = True
+    training_args.stepp = 0
+
+    if training_args.ds_percent == "debug":
+        training_args.checkpoint_every_n_steps = 5
+        # Resuming training
+        training_args.epochs = 10000
+        training_args.debug = True
+
+    if training_args.resume:
+        model_output_dir = os.path.join(training_args.output_dir, training_args.experiment_name)
+        model_output_dir = f"{model_output_dir}-epoch_checkpoint"
+        LOG.info(f'Restored log state from {model_output_dir}')
+        with open(f'{model_output_dir}/log_state.json', 'r') as file:
+            log_state = json.load(file)
+            LOG.info(log_state)
+            training_args.checkpoint_num = log_state["checkpoint_num"]
+            training_args.start_epoch = log_state["epoch"]+1
+            training_args.stepp = log_state["stepp"]
 
     total_ds_length = 100000
 
@@ -106,11 +128,15 @@ def main():
 
     wandb.define_metric("checkpoint_num")
     wandb.define_metric("epoch")
+    wandb.define_metric("stepp")
     wandb.define_metric("EL/*", step_metric="checkpoint_num")
     wandb.define_metric("ED/*", step_metric="checkpoint_num")
     wandb.define_metric("EL_average_f1", step_metric="checkpoint_num")
     wandb.define_metric("ED_average_f1", step_metric="checkpoint_num")
     wandb.define_metric("LR/*", step_metric="epoch")
+    wandb.define_metric("Loss", step_metric="stepp")
+    wandb.define_metric("epoch", step_metric="stepp")
+    wandb.define_metric("checkpoint_num", step_metric="stepp")
 
     resource_manager = ResourceManager(S3Manager(),
                                        data_dir=training_args.data_dir,
@@ -202,6 +228,13 @@ def main():
         checkpoint = torch.load(training_args.restore_model_path, map_location='cpu')
         model.load_state_dict(checkpoint, strict=False)
 
+    if training_args.resume:
+        model_output_dir = os.path.join(training_args.output_dir, training_args.experiment_name)
+        model_output_dir = f"{model_output_dir}-epoch_checkpoint"
+        LOG.info(f'Restored model from {model_output_dir}')
+        checkpoint = torch.load(f"{model_output_dir}/model.pt", map_location='cpu')
+        model.load_state_dict(checkpoint, strict=False)
+
     if training_args.n_gpu > 1:
         model = DataParallelReFinED(model, device_ids=list(range(training_args.n_gpu)), output_device=training_args.device)
     model = model.to(training_args.device)
@@ -255,6 +288,22 @@ def main():
         scheduler.load_state_dict(scheduler_checkpoint)
         scaler.load_state_dict(scaler_checkpoint)
 
+    if training_args.resume:
+        model_output_dir = os.path.join(training_args.output_dir, training_args.experiment_name)
+        model_output_dir = f"{model_output_dir}-epoch_checkpoint"
+        LOG.info(f'Restored optimizer from {model_output_dir}')
+        checkpoint = torch.load(f"{model_output_dir}/optimizer.pt", map_location='cpu')
+        optimizer.load_state_dict(checkpoint)
+        LOG.info(f'Restored scheduler from {model_output_dir}')
+        checkpoint = torch.load(f"{model_output_dir}/scheduler.pt", map_location='cpu')
+        scheduler.load_state_dict(checkpoint)
+        LOG.info(f'Restored scaler from {model_output_dir}')
+        checkpoint = torch.load(f"{model_output_dir}/scaler.pt", map_location='cpu')
+        scaler = GradScaler()
+        scaler.load_state_dict(checkpoint)
+    else:
+        scaler = GradScaler()
+
     run_fine_tuning_loops(
         refined=refined,
         fine_tuning_args=training_args,
@@ -262,7 +311,8 @@ def main():
         optimizer=optimizer,
         scheduler=scheduler,
         evaluation_dataset_name_to_docs={'WIKI_DEV': eval_docs},
-        checkpoint_every_n_steps=training_args.checkpoint_every_n_steps
+        checkpoint_every_n_steps=training_args.checkpoint_every_n_steps,
+        scaler=scaler
     )
 
 
