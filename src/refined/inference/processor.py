@@ -103,7 +103,8 @@ class Refined(object):
                 model_file=model_file_or_model,
                 model_config_file=model_config_file_or_model_config,
                 preprocessor=self.preprocessor,
-                use_precomputed_descriptions=use_precomputed_descriptions
+                use_precomputed_descriptions=use_precomputed_descriptions,
+                lang=lang
             )
 
         # ensure all parameters are unfrozen

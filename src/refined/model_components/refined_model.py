@@ -605,7 +605,8 @@ class RefinedModel(nn.Module):
             model_file: str,
             model_config_file: str,
             preprocessor: Preprocessor,
-            use_precomputed_descriptions: bool = True
+            use_precomputed_descriptions: bool = True,
+            lang: str = 'en'
     ):
         """
         Load a pretrained model.
@@ -615,6 +616,17 @@ class RefinedModel(nn.Module):
         :param use_precomputed_descriptions: use precomputed embeddings
         :return: model
         """
+        entity_typing_n_classes = {
+            "de": 1075+1,
+            "es": 740+1,
+            "pt": 488+1,
+            "ru": 983+1,
+            "en": 1213+1
+        }
+
+        et_lang_n_classes = entity_typing_n_classes[lang]
+        ed_red = 1372 - (et_lang_n_classes+3)
+
         config = ModelConfig.from_file(model_config_file, data_dir=preprocessor.data_dir)
 
         model = cls(
@@ -626,8 +638,8 @@ class RefinedModel(nn.Module):
             checkpoint = torch.load(io.BytesIO(f.read()), map_location="cpu")
 
         # Changing head size for fine tuning
-        checkpoint['entity_typing.linear.weight'] = nn.Parameter(torch.randn(1076, 768))
-        checkpoint['entity_typing.linear.bias'] = nn.Parameter(torch.randn(1076))
+        checkpoint['entity_typing.linear.weight'] = nn.Parameter(torch.randn(et_lang_n_classes, 768))
+        checkpoint['entity_typing.linear.bias'] = nn.Parameter(torch.randn(et_lang_n_classes))
 
         for param in checkpoint.keys():
             checkpoint[param].requires_grad = False
@@ -643,7 +655,7 @@ class RefinedModel(nn.Module):
             # pme + pem
             ed_params[:, -9] += ed_params[:, -7]
             # should be [1, 1079] - de (1372 - 1076+3)
-            ed_params = ed_params[:, :-293]
+            ed_params = ed_params[:, :-ed_red]
             mask = torch.ones_like(ed_params, dtype=torch.bool)
             # remove additional features weights
             mask[:, -5:] = False
