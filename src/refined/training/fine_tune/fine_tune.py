@@ -20,12 +20,15 @@ from refined.training.train.training_args import TrainingArgs
 from refined.utilities.general_utils import get_logger
 import wandb
 import json
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data")
 
 LOG = get_logger(name=__name__)
 
 def main():
     wandb.login()
-    languages = ["en", "de"]
+    languages = ["en", "de", "es", "pt", "ru"]
 
     fine_tuning_args = parse_fine_tuning_args()
     
@@ -83,6 +86,7 @@ def main():
     train_path = f"{dir_path}/datasets/{train_ds[fine_tuning_args.ds_percent]}"
     if fine_tuning_args.ds_percent == "debug":
         eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_spans_20_sample.json"
+        # eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_spans_val_1e4.json"
     else:
         eval_path = f"{dir_path}/datasets/{fine_tuning_args.language}_wikipedia_links_aligned_spans_val_1e4.json"
 
