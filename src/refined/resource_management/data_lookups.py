@@ -38,6 +38,18 @@ class LookupsInferenceOnly:
             file_path = resource_to_file_path["qcode_idx_to_class_idx"].split("/")
             file_path[-1] = "qcode_to_class_tns_2199887-73.np"
             resource_to_file_path["qcode_idx_to_class_idx"] = "/".join(file_path)
+        elif lang == "es":
+            file_path = resource_to_file_path["qcode_idx_to_class_idx"].split("/")
+            file_path[-1] = "qcode_to_class_tns_1584720-65.np"
+            resource_to_file_path["qcode_idx_to_class_idx"] = "/".join(file_path)
+        elif lang == "pt":
+            file_path = resource_to_file_path["qcode_idx_to_class_idx"].split("/")
+            file_path[-1] = "qcode_to_class_tns_1103276-59.np"
+            resource_to_file_path["qcode_idx_to_class_idx"] = "/".join(file_path)
+        elif lang == "ru":
+            file_path = resource_to_file_path["qcode_idx_to_class_idx"].split("/")
+            file_path[-1] = "qcode_to_class_tns_1597879-75.np"
+            resource_to_file_path["qcode_idx_to_class_idx"] = "/".join(file_path)
         self.qcode_idx_to_class_idx = np.memmap(
             resource_to_file_path["qcode_idx_to_class_idx"],
             shape=get_mmap_shape(resource_to_file_path["qcode_idx_to_class_idx"]),
