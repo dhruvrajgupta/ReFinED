@@ -55,6 +55,7 @@ class FineTuningArgs(TrainingArgs):
     language: str = field(default_factory=str)
     resume: bool = False
     start_epoch: int = 0
+    seed: int = 0
 
     def add_command_line_args(self, args) -> None:
         for arg in vars(args):
@@ -242,6 +243,14 @@ def parse_fine_tuning_args() -> FineTuningArgs:
         type=int,
         required=False,
         help="Choose start epoch"
+    )
+
+    parser.add_argument(
+        "--seed",
+        default=fine_tuning_args.seed,
+        type=int,
+        required=False,
+        help="Choose seed value"
     )
 
     args = parser.parse_args()

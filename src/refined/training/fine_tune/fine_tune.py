@@ -204,7 +204,8 @@ def start_fine_tuning_task(refined: 'Refined', train_docs: Iterable[Doc],
     )
     # training_dataset = ShuffleDataset(training_dataset, 10)# shuffle buffer size depends on your application
     training_dataloader = DataLoader(
-        dataset=ShuffleDataset(training_dataset, 100, training_dataset.approximate_length), batch_size=fine_tuning_args.batch_size, num_workers=1,
+        dataset=ShuffleDataset(training_dataset, 100, training_dataset.approximate_length, seed=fine_tuning_args.seed), 
+        batch_size=fine_tuning_args.batch_size, num_workers=1,
         collate_fn=training_dataset.collate
     )
 

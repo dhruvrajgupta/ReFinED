@@ -56,6 +56,7 @@ class TrainingArgs:
     ds_percent: str = field(default_factory=str)
     language: str = field(default_factory=str)
     start_epoch: int = 0
+    seed: int = 0
 
     def __post_init__(self):
         if self.checkpoint_metric is None:
@@ -298,6 +299,14 @@ def parse_training_args() -> TrainingArgs:
         type=int,
         required=False,
         help="Choose start epoch"
+    )
+
+    parser.add_argument(
+        "--seed",
+        default=training_args.seed,
+        type=int,
+        required=False,
+        help="Choose seed value"
     )
 
     args = parser.parse_args()

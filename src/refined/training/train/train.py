@@ -186,7 +186,7 @@ def main():
         add_main_entity=True,
         file_line_count=ds_length[training_args.ds_percent]
     )
-    training_dataloader = DataLoader(ShuffleDataset(training_dataset, 100, len(training_dataset)), 
+    training_dataloader = DataLoader(ShuffleDataset(training_dataset, 100, len(training_dataset), seed=training_args.seed), 
                                      batch_size=None, num_workers=8 * training_args.n_gpu,
                                      # pin_memory=True if training_args.n_gpu == 1 else False,
                                      pin_memory=True,  # may break ddp and dp training
